@@ -38,6 +38,13 @@ type Glyph struct {
 // Key represents a single keypress.
 type Key rune
 
+// Key constants which normally require escapes.
+const (
+	KeyEsc   Key = 27
+	KeyEnter Key = '\r'
+	KeyCtrlC Key = Key(termbox.KeyCtrlC)
+)
+
 // Offset translates a keypress into a direction for both vi-keys and numpad.
 // The ok bool indicates whether the keypress corresponded to a direction.
 func (k Key) Offset() (dx, dy int, ok bool) {
