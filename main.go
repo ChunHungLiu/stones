@@ -8,8 +8,13 @@ func main() {
 	core.MustTermInit()
 	defer core.TermDone()
 
-	for x, ch := range "Hello World!" {
-		core.TermDraw(x, 0, core.Glyph{ch, core.ColorWhite})
+	cols, rows := 20, 10
+	tiles := core.GenStub(cols, rows)
+
+	for x := 0; x < cols; x++ {
+		for y := 0; y < rows; y++ {
+			core.TermDraw(x, y, tiles[x][y].Face)
+		}
 	}
 	core.TermRefresh()
 
