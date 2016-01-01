@@ -11,4 +11,8 @@ type Skin struct {
 }
 
 func (e *Skin) Handle(v core.Event) {
+	switch v := v.(type) {
+	case *core.RenderRequest:
+		v.Render = e.Face
+	}
 }

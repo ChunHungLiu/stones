@@ -14,19 +14,22 @@ func main() {
 	radius := 5
 
 	hero := habilis.Skin{core.Glyph{'@', core.ColorWhite}, &tiles[10][5]}
+	tiles[10][5].Occupant = &hero
 	key := core.Key(0)
 
 	for key != core.KeyEsc {
 		core.TermClear()
 		for off, tile := range core.FoV(hero.Pos, radius) {
-			core.TermDraw(off.X+radius, off.Y+radius, tile.Face)
+			req := core.RenderRequest{}
+			tile.Handle(&req)
+			core.TermDraw(radius+off.X, radius+off.Y, req.Render)
 		}
-		core.TermDraw(radius, radius, hero.Face)
 		core.TermRefresh()
 
 		key = core.GetKey()
 		if dx, dy, ok := key.Offset(); ok {
 			if adj := hero.Pos.Adjacent[core.Offset{dx, dy}]; adj.Pass {
+				hero.Pos.Occupant, adj.Occupant = nil, &hero
 				hero.Pos = adj
 			}
 		}

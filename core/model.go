@@ -5,10 +5,18 @@ type Tile struct {
 	Face     Glyph
 	Pass     bool
 	Adjacent map[Offset]*Tile
+	Occupant Entity
 }
 
 // Handle implements Entity for Tile
-func (*Tile) Handle(Event) {
+func (e *Tile) Handle(v Event) {
+	switch v := v.(type) {
+	case *RenderRequest:
+		v.Render = e.Face
+		if e.Occupant != nil {
+			e.Occupant.Handle(v)
+		}
+	}
 }
 
 // Event is a message sent to an Entity.
@@ -32,4 +40,9 @@ func (e ComponentSlice) Handle(v Event) {
 	for _, c := range e {
 		c.Process(v)
 	}
+}
+
+// RenderReqest is an Event querying an Entity for a Glyph to render.
+type RenderRequest struct {
+	Render Glyph
 }
