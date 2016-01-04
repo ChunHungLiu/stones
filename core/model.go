@@ -46,3 +46,6 @@ func (e ComponentSlice) Handle(v Event) {
 type RenderRequest struct {
 	Render Glyph
 }
+
+// Action is an Event requesting that an Entity perform an action.
+type Action struct{}
