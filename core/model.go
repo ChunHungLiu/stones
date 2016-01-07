@@ -42,7 +42,7 @@ func (e ComponentSlice) Handle(v Event) {
 	}
 }
 
-// RenderReqest is an Event querying an Entity for a Glyph to render.
+// RenderRequest is an Event querying an Entity for a Glyph to render.
 type RenderRequest struct {
 	Render Glyph
 }

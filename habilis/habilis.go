@@ -5,12 +5,14 @@ import (
 	"github.com/jlund3/stones/core"
 )
 
+// Skin is an Entity representing a character in the game world.
 type Skin struct {
 	Face    core.Glyph
 	Pos     *core.Tile
 	Expired bool
 }
 
+// Handle implements Entity for Skin.
 func (e *Skin) Handle(v core.Event) {
 	switch v := v.(type) {
 	case *core.RenderRequest:
