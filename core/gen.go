@@ -29,11 +29,7 @@ func GenStub(cols, rows int) [][]Tile {
 			link(x, y, -1, 1)
 			link(x, y, -1, 0)
 			link(x, y, -1, -1)
-		}
-	}
 
-	for x := 0; x < cols; x++ {
-		for y := 0; y < rows; y++ {
 			if x == 0 || x == cols-1 || y == 0 || y == rows-1 {
 				tiles[x][y].Face = Glyph{'#', ColorWhite}
 				tiles[x][y].Pass = false
