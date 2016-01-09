@@ -68,7 +68,12 @@ type Bump struct {
 	Bumped Entity
 }
 
-// UpdatePos informs an Entity of its new position.
+// UpdatePos is an Event informing an Entity of its new position.
 type UpdatePos struct {
 	Pos *Tile
+}
+
+// LogMessage is an Event containing a log message.
+type LogMessage struct {
+	Message string
 }

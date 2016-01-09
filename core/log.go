@@ -34,7 +34,7 @@ import (
 //
 // Also note that if no ending punctuation is given, then a period is added
 // automatically. The sentence is also capitalized if was not already.
-func Log(s string, args ...interface{}) string {
+func Log(s string, args ...interface{}) *LogMessage {
 	objects := []interface{}{} // subject is always objects[0]
 
 	replace := func(match string) string {
@@ -64,7 +64,7 @@ func Log(s string, args ...interface{}) string {
 		return getVerb(match[1:len(match)-1], objects[0])
 	}
 
-	return makeSentence(formatRE.ReplaceAllStringFunc(s, replace))
+	return &LogMessage{makeSentence(formatRE.ReplaceAllStringFunc(s, replace))}
 }
 
 var (
