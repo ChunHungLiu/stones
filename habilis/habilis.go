@@ -20,12 +20,11 @@ func (e *Skin) Handle(v core.Event) {
 	case *core.Action:
 		key := core.GetKey()
 		if dx, dy, ok := key.Offset(); ok {
-			if adj := e.Pos.Adjacent[core.Offset{dx, dy}]; adj.Pass {
-				e.Pos.Occupant, adj.Occupant = nil, e
-				e.Pos = adj
-			}
+			e.Pos.Handle(&core.MoveEntity{core.Offset{dx, dy}})
 		} else if key == core.KeyEsc {
 			e.Expired = true
 		}
+	case *core.UpdatePos:
+		e.Pos = v.Pos
 	}
 }

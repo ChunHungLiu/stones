@@ -16,6 +16,14 @@ func (e *Tile) Handle(v Event) {
 		if e.Occupant != nil {
 			e.Occupant.Handle(v)
 		}
+	case *MoveEntity:
+		adj := e.Adjacent[v.Delta]
+		if bumped := adj.Occupant; bumped != nil {
+			e.Occupant.Handle(&Bump{bumped})
+		} else if adj.Pass {
+			e.Occupant, adj.Occupant = nil, e.Occupant
+			adj.Occupant.Handle(&UpdatePos{adj})
+		}
 	}
 }
 
@@ -49,3 +57,18 @@ type RenderRequest struct {
 
 // Action is an Event requesting that an Entity perform an action.
 type Action struct{}
+
+// MoveEntity is an Event attempting to move an occupant to a new position.
+type MoveEntity struct {
+	Delta Offset
+}
+
+// Bump is an Event in which one Entity bumps another.
+type Bump struct {
+	Bumped Entity
+}
+
+// UpdatePos informs an Entity of its new position.
+type UpdatePos struct {
+	Pos *Tile
+}
