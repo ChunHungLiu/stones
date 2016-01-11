@@ -124,3 +124,8 @@ func Clamp(min, val, max int) int {
 	}
 	return val
 }
+
+// InBounds returns true if x in [0, w) and y in [0, h).
+func InBounds(x, y, w, h int) bool {
+	return 0 <= x && x < w && 0 <= y && y < h
+}
