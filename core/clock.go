@@ -49,7 +49,7 @@ func (c *DeltaClock) Schedule(e Entity, delta float64) {
 		// if the desired node already exists, just reuse it
 		node = curr
 	} else {
-		// desired didnt exist, so create it, with a link to curr node
+		// desired didn't exist, so create it, with a link to curr node
 		node = &deltanode{delta, curr, make(map[Entity]struct{})}
 
 		if prev == nil {

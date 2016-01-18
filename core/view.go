@@ -17,7 +17,7 @@ func FoV(origin *Tile, radius int) map[Offset]*Tile {
 	// if the given one is transparent. Using this table, we basically just do
 	// a recursive search using the table to guide us. Thus, we get a field of
 	// view algorithm which performs minimal computation, never revisits tiles,
-	// and short circuts on closed maps.
+	// and short circuits on closed maps.
 	table, cached := tableCache[radius]
 	if !cached {
 		table = computeTable(radius)

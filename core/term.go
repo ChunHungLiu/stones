@@ -6,7 +6,7 @@ import (
 
 // TermInit readies the terminal for use by the term functions in the core
 // package. TermInit should be called before any other term functions are used.
-// After a succesful call to TermInit, a call to TermDone should be deferred.
+// After a successful call to TermInit, a call to TermDone should be deferred.
 func TermInit() error {
 	return termbox.Init()
 }
