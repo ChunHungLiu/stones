@@ -53,6 +53,7 @@ type Form struct {
 	Elements []Element
 }
 
+// Run
 func (f Form) Run() FormResult {
 	curr := 0
 	for {
@@ -98,10 +99,12 @@ type Widget struct {
 	x, y, w, h int
 }
 
+// NewWidget creates a Widget with the given location and size.
 func NewWidget(x, y, w, h int) Widget {
 	return Widget{x, y, w, h}
 }
 
+// DrawRel performs a TermDraw relative to the location and size of the Widget.
 func (w *Widget) DrawRel(x, y int, g Glyph) {
 	if InBounds(x, y, w.w, w.h) {
 		TermDraw(x+w.x, y+w.h, g)
@@ -138,6 +141,7 @@ type logmsg struct {
 	Seen  bool
 }
 
+// String implements fmt.Stringer for logmsg.
 func (m *logmsg) String() string {
 	if m.Count == 1 {
 		return m.Text
@@ -145,15 +149,18 @@ func (m *logmsg) String() string {
 	return fmt.Sprintf("%s (x%d)", m.Text, m.Count)
 }
 
+// LogWidget is a Widget which stores and display log messages.
 type LogWidget struct {
 	Widget
 	cache []*logmsg
 }
 
+// NewLogWidget creates a new empty LogWidget.
 func NewLogWidget(x, y, w, h int) *LogWidget {
 	return &LogWidget{Widget{x, y, w, h}, make([]*logmsg, 0)}
 }
 
+// AddMessage places a new message in the LogWidget cache.
 func (w *LogWidget) AddMessage(msg string) {
 	last := len(w.cache) - 1
 	// if cache is empty, or last message text was different than this one
@@ -169,6 +176,7 @@ func (w *LogWidget) AddMessage(msg string) {
 	}
 }
 
+// Update draws the cached log messages on screen.
 func (w *LogWidget) Update() {
 	for y, msg := range w.cache {
 		// determine color based on seen
@@ -189,6 +197,7 @@ func (w *LogWidget) Update() {
 	}
 }
 
+// ListSelect displays a list of items, and allows the user to select one item.
 func ListSelect(title string, items []interface{}) (index int, ok bool) {
 	state := TermSave()
 	defer state.Restore()
