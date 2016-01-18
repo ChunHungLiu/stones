@@ -1,5 +1,9 @@
 package core
 
+import (
+	"fmt"
+)
+
 // Visual represents something which can be drawn in the terminal.
 type Visual interface {
 	Update()
@@ -125,5 +129,62 @@ func (w *TextWidget) Update() {
 			w.DrawRel(x, y, Glyph{ch, ColorWhite})
 			x++
 		}
+	}
+}
+
+type logmsg struct {
+	Text  string
+	Count int
+	Seen  bool
+}
+
+func (m *logmsg) String() string {
+	if m.Count == 1 {
+		return m.Text
+	}
+	return fmt.Sprintf("%s (x%d)", m.Text, m.Count)
+}
+
+type LogWidget struct {
+	Widget
+	cache []*logmsg
+}
+
+func NewLogWidget(x, y, w, h int) *LogWidget {
+	return &LogWidget{Widget{x, y, w, h}, make([]*logmsg, 0)}
+}
+
+func (w *LogWidget) AddMessage(msg string) {
+	last := len(w.cache) - 1
+	// if cache is empty, or last message text was different than this one
+	if last < 0 || w.cache[last].Text != msg {
+		w.cache = append(w.cache, &logmsg{msg, 1, false})
+		// truncate cache if too long to show on the widget
+		if len(w.cache) > w.h {
+			w.cache = w.cache[len(w.cache)-w.h:]
+		}
+	} else { // duplicate text, so just reuse last message
+		w.cache[last].Count++
+		w.cache[last].Seen = false
+	}
+}
+
+func (w *LogWidget) Update() {
+	for y, msg := range w.cache {
+		// determine color based on seen
+		var fg Color
+		if msg.Seen {
+			fg = ColorLightBlack
+		} else {
+			fg = ColorWhite
+		}
+
+		// note we assume no newlines, unlike TextWidget.
+		for x, ch := range msg.String() {
+			w.DrawRel(x, y, Glyph{ch, fg})
+		}
+
+		// we just displayed the message, so next time should be seen
+		msg.Seen = true
 	}
 }

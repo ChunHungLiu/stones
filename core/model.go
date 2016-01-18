@@ -23,6 +23,8 @@ func (e *Tile) Handle(v Event) {
 		} else if adj.Pass {
 			e.Occupant, adj.Occupant = nil, e.Occupant
 			adj.Occupant.Handle(&UpdatePos{adj})
+		} else {
+			e.Occupant.Handle(Log("%s cannot pass", e.Occupant))
 		}
 	}
 }

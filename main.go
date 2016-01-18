@@ -13,8 +13,12 @@ func main() {
 	tiles := core.GenStub(cols, rows)
 	radius := 5
 
-	hero := habilis.Skin{core.Glyph{'@', core.ColorWhite}, &tiles[10][5], false}
+	log := core.NewLogWidget(0, 11, 80, 10)
+	hero := habilis.Skin{"you", core.Glyph{'@', core.ColorWhite}, &tiles[10][5], log, false}
 	tiles[10][5].Occupant = &hero
+
+	goblin := habilis.Skin{"goblin", core.Glyph{'g', core.ColorYellow}, &tiles[5][5], nil, false}
+	tiles[5][5].Occupant = &goblin
 
 	for !hero.Expired {
 		core.TermClear()
@@ -23,6 +27,7 @@ func main() {
 			tile.Handle(&req)
 			core.TermDraw(radius+off.X, radius+off.Y, req.Render)
 		}
+		log.Update()
 		core.TermRefresh()
 
 		hero.Handle(&core.Action{})

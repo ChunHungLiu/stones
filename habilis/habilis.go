@@ -7,8 +7,10 @@ import (
 
 // Skin is an Entity representing a character in the game world.
 type Skin struct {
+	Name    string
 	Face    core.Glyph
 	Pos     *core.Tile
+	Log     *core.LogWidget
 	Expired bool
 }
 
@@ -26,5 +28,17 @@ func (e *Skin) Handle(v core.Event) {
 		}
 	case *core.UpdatePos:
 		e.Pos = v.Pos
+	case *core.LogMessage:
+		e.Log.AddMessage(v.Message)
+	case *core.Bump:
+		if v.Bumped == e {
+			e.Log.AddMessage(core.Log("%s <rest>", e).Message)
+		} else {
+			e.Log.AddMessage(core.Log("%s <bump> %o", e, v.Bumped).Message)
+		}
 	}
+}
+
+func (e *Skin) String() string {
+	return e.Name
 }
