@@ -27,6 +27,7 @@ func (e ComponentSlice) Handle(v Event) {
 type Tile struct {
 	Face     Glyph
 	Pass     bool
+	Offset   Offset
 	Adjacent map[Offset]*Tile
 	Occupant Entity
 }
@@ -62,6 +63,11 @@ type MoveEntity struct {
 	Delta Offset
 }
 
+// UpdatePos is an Event informing an Entity of its new position.
+type UpdatePos struct {
+	Pos *Tile
+}
+
 // Bump is an Event in which one Entity bumps another.
 type Bump struct {
 	Bumped Entity
@@ -70,9 +76,4 @@ type Bump struct {
 // Collide is an Event in which an Entity collides with an obstacle.
 type Collide struct {
 	Obstacle Entity
-}
-
-// UpdatePos is an Event informing an Entity of its new position.
-type UpdatePos struct {
-	Pos *Tile
 }

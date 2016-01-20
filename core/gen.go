@@ -9,6 +9,7 @@ func GenStub(cols, rows int) [][]Tile {
 			tiles[x][y].Face = Glyph{'.', ColorWhite}
 			tiles[x][y].Pass = true
 			tiles[x][y].Adjacent = make(map[Offset]*Tile)
+			tiles[x][y].Offset = Offset{x, y}
 		}
 	}
 
