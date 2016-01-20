@@ -6,28 +6,28 @@ import (
 	"strings"
 )
 
-// Fmt applies the Stones log formating language to create a LogMessage.
+// Fmt applies the Stones log formating language to create a log message.
 //
 // The format specifiers include the following:
 // 	%s - subject
 // 	%o - object
 // 	%v - verb
-// 	%l - literal
-// Additionally, verb literals maybe include using the form <verb>.
+// 	%x - literal
+// Additionally, verb literals may be included using the form <verb>.
 //
 // Each format specifier can be mapped to any arbitrary value, and is converted
 // to a string by the fmt package. Consequently, format values should probably
-// implement the fmt.Stringer interface to ensure that the log message is
-// correctly formated.
+// implement the fmt.Stringer interface to ensure that the values are correctly
+// represented in the formatted string.
 //
 // Example usage:
-// 	Log("%s <hit> %o", hero, orc) yields "You hit the orc."
-// 	Log("%s <hit> %o", goblin, hero) yields "The goblin hits you."
-// 	Log("%s <hit> %o!", goblin, orc) yields "The goblin hits the orc!"
-// 	Log("%s <hit> %o?", goblin, goblin) yields "The goblin hits itself?"
-// 	Log("%s <laugh>", unique) yields "Morgoth laughs."
+// 	Log("%s <hit> %o", hero, bear) yields "You hit the bear."
+// 	Log("%s %v %o", tiger, verb, hero) yields "The saber-tooth slashes you."
+// 	Log("%s <hit> %o!", tiger, rabbit) yields "The saber-tooth hits the rabbit!"
+// 	Log("%s %v %o?", bear, verb, bear) yields "The bear hits itself?"
+// 	Log("%s <laugh>", unique) yields "Gorp laughs."
 //
-// Note that that the hero String conversion is "you" so that the formatter
+// Note that if the String conversion for a value is "you" so that the formatter
 // knows which grammatical-person to use. Named monsters should have string
 // representations which are capitalized so the formatter knows not to add
 // certain articles to the names.
@@ -56,7 +56,7 @@ func Fmt(s string, args ...interface{}) string {
 		case "%v":
 			noun, args = args[0], args[1:]
 			return getVerb(noun, objects[0])
-		case "%l":
+		case "%x":
 			noun, args = args[0], args[1:]
 			return fmt.Sprintf("%v", noun)
 		}
@@ -68,7 +68,7 @@ func Fmt(s string, args ...interface{}) string {
 }
 
 var (
-	formatRE             = regexp.MustCompile("%s|%o|%v|%l|<.+?>")
+	formatRE             = regexp.MustCompile("%s|%o|%v|%x|<.+?>")
 	articles             = []string{"the", "a"}
 	irregularVerbsSecond = map[string]string{
 		"be": "are"}
