@@ -24,9 +24,13 @@ func (e *Tile) Handle(v Event) {
 			e.Occupant, adj.Occupant = nil, e.Occupant
 			adj.Occupant.Handle(&UpdatePos{adj})
 		} else {
-			e.Occupant.Handle(Log("%s cannot pass", e.Occupant))
+			e.Occupant.Handle(&Collide{adj})
 		}
 	}
+}
+
+func (e *Tile) String() string {
+	return string(e.Face.Ch)
 }
 
 // Event is a message sent to an Entity.
@@ -68,6 +72,11 @@ type MoveEntity struct {
 // Bump is an Event in which one Entity bumps another.
 type Bump struct {
 	Bumped Entity
+}
+
+// Collide is an Event in which an Entity collides with an obstacle.
+type Collide struct {
+	Obstacle Entity
 }
 
 // UpdatePos is an Event informing an Entity of its new position.

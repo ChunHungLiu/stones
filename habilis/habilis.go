@@ -10,7 +10,7 @@ type Skin struct {
 	Name    string
 	Face    core.Glyph
 	Pos     *core.Tile
-	Log     *core.LogWidget
+	Logger  *core.LogWidget
 	Expired bool
 }
 
@@ -29,13 +29,15 @@ func (e *Skin) Handle(v core.Event) {
 	case *core.UpdatePos:
 		e.Pos = v.Pos
 	case *core.LogMessage:
-		e.Log.AddMessage(v.Message)
+		e.Logger.Log(v.Message)
 	case *core.Bump:
 		if v.Bumped == e {
-			e.Log.AddMessage(core.Log("%s <rest>", e).Message)
+			e.Logger.Log(core.Fmt("%s <rest>", e))
 		} else {
-			e.Log.AddMessage(core.Log("%s <bump> %o", e, v.Bumped).Message)
+			e.Logger.Log(core.Fmt("%s <bump> %o", e, v.Bumped))
 		}
+	case *core.Collide:
+		e.Logger.Log(core.Fmt("%s <cannot> pass %o", e, v.Obstacle))
 	}
 }
 

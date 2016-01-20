@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Log applies the Stones log formating language to create a LogMessage.
+// Fmt applies the Stones log formating language to create a LogMessage.
 //
 // The format specifiers include the following:
 // 	%s - subject
@@ -34,7 +34,7 @@ import (
 //
 // Also note that if no ending punctuation is given, then a period is added
 // automatically. The sentence is also capitalized if was not already.
-func Log(s string, args ...interface{}) *LogMessage {
+func Fmt(s string, args ...interface{}) string {
 	objects := []interface{}{} // subject is always objects[0]
 
 	replace := func(match string) string {
@@ -64,7 +64,7 @@ func Log(s string, args ...interface{}) *LogMessage {
 		return getVerb(match[1:len(match)-1], objects[0])
 	}
 
-	return &LogMessage{makeSentence(formatRE.ReplaceAllStringFunc(s, replace))}
+	return makeSentence(formatRE.ReplaceAllStringFunc(s, replace))
 }
 
 var (

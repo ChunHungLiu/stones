@@ -160,8 +160,8 @@ func NewLogWidget(x, y, w, h int) *LogWidget {
 	return &LogWidget{Widget{x, y, w, h}, make([]*logmsg, 0)}
 }
 
-// AddMessage places a new message in the LogWidget cache.
-func (w *LogWidget) AddMessage(msg string) {
+// Log places a new message in the LogWidget cache.
+func (w *LogWidget) Log(msg string) {
 	last := len(w.cache) - 1
 	// if cache is empty, or last message text was different than this one
 	if last < 0 || w.cache[last].Text != msg {
