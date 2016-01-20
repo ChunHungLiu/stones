@@ -81,3 +81,83 @@ func GetKey() Key {
 		}
 	}
 }
+
+// Visual represents something which can be drawn in the terminal.
+type Visual interface {
+	Update()
+}
+
+// Screen is a collection of Visual.
+type Screen []Visual
+
+// Update clears the screen, and draws each Visual in the Screen.
+func (s Screen) Update() {
+	TermClear()
+	for _, v := range s {
+		v.Update()
+	}
+	TermRefresh()
+}
+
+// FormResult describes the result from running a Form.
+type FormResult interface {
+	Result() string
+}
+
+// resultstr is the default implementation of FormResult.
+type resultstr string
+
+// NewFormResult wraps a string as a FormResult.
+func NewFormResult(s string) FormResult {
+	return resultstr(s)
+}
+
+// ResultEsc is the result from Form.Run when escape is pressed.
+var ResultEsc = NewFormResult("ESCAPE")
+
+// Result unwraps the resultstr into a string.
+func (r resultstr) Result() string {
+	return string(r)
+}
+
+// Element represents an activatable element on a Form.
+type Element interface {
+	Update(selected bool)
+	Activate() FormResult
+}
+
+// Form is a collection for Visual and Element for building a TUI screen.
+type Form struct {
+	Visuals  []Visual
+	Elements []Element
+}
+
+// Run allows the user to select and activate Form Elements. Run returns any
+// non-nil FormResult from an activated Element. Additionally, ResultEsc is
+// returned if the user hits escape.
+func (f Form) Run() FormResult {
+	curr := 0
+	for {
+		TermClear()
+		for _, v := range f.Visuals {
+			v.Update()
+		}
+		for i, e := range f.Elements {
+			e.Update(i == curr)
+		}
+		TermRefresh()
+
+		switch key := GetKey(); key {
+		case KeyEnter:
+			if result := f.Elements[curr].Activate(); result != nil {
+				return result
+			}
+		case KeyEsc:
+			return ResultEsc
+		default:
+			if delta, ok := KeyMap[key]; ok && delta.X == 0 {
+				curr = Mod(curr+delta.Y, len(f.Elements))
+			}
+		}
+	}
+}

@@ -40,41 +40,26 @@ type Key rune
 
 // Key constants which normally require escapes.
 const (
-	KeyEsc   Key = 27
-	KeyEnter Key = '\r'
+	KeyEsc   Key = Key(termbox.KeyEsc)
+	KeyEnter Key = Key(termbox.KeyEnter)
 	KeyCtrlC Key = Key(termbox.KeyCtrlC)
 )
-
-// Offset translates a keypress into a direction for both vi-keys and numpad.
-// The ok bool indicates whether the keypress corresponded to a direction.
-func (k Key) Offset() (dx, dy int, ok bool) {
-	switch k {
-	case 'h', '4':
-		return -1, 0, true
-	case 'l', '6':
-		return 1, 0, true
-	case 'k', '8':
-		return 0, -1, true
-	case 'j', '2':
-		return 0, 1, true
-	case 'u', '9':
-		return 1, -1, true
-	case 'y', '7':
-		return -1, -1, true
-	case 'n', '3':
-		return 1, 1, true
-	case 'b', '1':
-		return -1, 1, true
-	case '.', '5':
-		return 0, 0, true
-	default:
-		return 0, 0, false
-	}
-}
 
 // Offset stores a 2-dimensional int vector.
 type Offset struct {
 	X, Y int
+}
+
+// KeyMap stores default directional Key values.
+var KeyMap = map[Key]Offset{
+	'h': Offset{-1, 0}, '4': Offset{-1, 0},
+	'l': Offset{1, 0}, '6': Offset{1, 0},
+	'k': Offset{0, -1}, '8': Offset{0, -1},
+	'j': Offset{0, 1}, '2': Offset{0, 1},
+	'u': Offset{1, -1}, '9': Offset{1, -1},
+	'y': Offset{-1, -1}, '7': Offset{-1, -1},
+	'n': Offset{1, 1}, '3': Offset{1, 1},
+	'b': Offset{-1, 1}, '1': Offset{-1, 1},
 }
 
 // Diff returns the result of subtracting another Offset from this one.

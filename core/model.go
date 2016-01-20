@@ -1,5 +1,28 @@
 package core
 
+// Event is a message sent to an Entity.
+type Event interface{}
+
+// Component processes Events for an Entity.
+type Component interface {
+	Process(Event)
+}
+
+// Entity is a single game object, typically a collection of Component.
+type Entity interface {
+	Handle(Event)
+}
+
+// ComponentSlice is a simple Entity which is a slice of Components.
+type ComponentSlice []Component
+
+// Handle sends an event to each Component in order.
+func (e ComponentSlice) Handle(v Event) {
+	for _, c := range e {
+		c.Process(v)
+	}
+}
+
 // Tile is an Entity representing a single square in a map.
 type Tile struct {
 	Face     Glyph
@@ -29,40 +52,10 @@ func (e *Tile) Handle(v Event) {
 	}
 }
 
-func (e *Tile) String() string {
-	return string(e.Face.Ch)
-}
-
-// Event is a message sent to an Entity.
-type Event interface{}
-
-// Component processes Events for an Entity.
-type Component interface {
-	Process(Event)
-}
-
-// Entity is a single game object, typically a collection of Component.
-type Entity interface {
-	Handle(Event)
-}
-
-// ComponentSlice is a simple Entity which is a slice of Components.
-type ComponentSlice []Component
-
-// Handle sends an event to each Component in order.
-func (e ComponentSlice) Handle(v Event) {
-	for _, c := range e {
-		c.Process(v)
-	}
-}
-
 // RenderRequest is an Event querying an Entity for a Glyph to render.
 type RenderRequest struct {
 	Render Glyph
 }
-
-// Action is an Event requesting that an Entity perform an action.
-type Action struct{}
 
 // MoveEntity is an Event attempting to move an occupant to a new position.
 type MoveEntity struct {
@@ -82,9 +75,4 @@ type Collide struct {
 // UpdatePos is an Event informing an Entity of its new position.
 type UpdatePos struct {
 	Pos *Tile
-}
-
-// LogMessage is an Event containing a log message.
-type LogMessage struct {
-	Message string
 }

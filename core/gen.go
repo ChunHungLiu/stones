@@ -25,7 +25,6 @@ func GenStub(cols, rows int) [][]Tile {
 			link(x, y, 1, 0)
 			link(x, y, 1, -1)
 			link(x, y, 0, 1)
-			link(x, y, 0, 0)
 			link(x, y, 0, -1)
 			link(x, y, -1, 1)
 			link(x, y, -1, 0)

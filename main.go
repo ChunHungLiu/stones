@@ -30,6 +30,6 @@ func main() {
 		log.Update()
 		core.TermRefresh()
 
-		hero.Handle(&core.Action{})
+		hero.Handle(&habilis.Action{})
 	}
 }
