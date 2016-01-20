@@ -32,4 +32,8 @@ func main() {
 
 		hero.Handle(&habilis.Action{})
 	}
+
+	core.TermTint(core.ColorRed)
+	core.TermRefresh()
+	core.GetKey()
 }
