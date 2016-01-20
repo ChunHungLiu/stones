@@ -34,6 +34,7 @@ func NewFormResult(s string) FormResult {
 	return resultstr(s)
 }
 
+// ResultEsc is the result from Form.Run when escape is pressed.
 var ResultEsc = NewFormResult("ESCAPE")
 
 // Result unwraps the resultstr into a string.
@@ -53,7 +54,9 @@ type Form struct {
 	Elements []Element
 }
 
-// Run
+// Run allows the user to select and activate Form Elements. Run returns any
+// non-nil FormResult from an activated Element. Additionally, ResultEsc is
+// returned if the user hits escape.
 func (f Form) Run() FormResult {
 	curr := 0
 	for {
