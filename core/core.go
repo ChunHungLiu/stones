@@ -52,14 +52,14 @@ type Offset struct {
 
 // KeyMap stores default directional Key values.
 var KeyMap = map[Key]Offset{
-	'h': Offset{-1, 0}, '4': Offset{-1, 0},
-	'l': Offset{1, 0}, '6': Offset{1, 0},
-	'k': Offset{0, -1}, '8': Offset{0, -1},
-	'j': Offset{0, 1}, '2': Offset{0, 1},
-	'u': Offset{1, -1}, '9': Offset{1, -1},
-	'y': Offset{-1, -1}, '7': Offset{-1, -1},
-	'n': Offset{1, 1}, '3': Offset{1, 1},
-	'b': Offset{-1, 1}, '1': Offset{-1, 1},
+	'h': {-1, 0}, '4': {-1, 0},
+	'l': {1, 0}, '6': {1, 0},
+	'k': {0, -1}, '8': {0, -1},
+	'j': {0, 1}, '2': {0, 1},
+	'u': {1, -1}, '9': {1, -1},
+	'y': {-1, -1}, '7': {-1, -1},
+	'n': {1, 1}, '3': {1, 1},
+	'b': {-1, 1}, '1': {-1, 1},
 }
 
 // Diff returns the result of subtracting another Offset from this one.
