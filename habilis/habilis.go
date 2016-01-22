@@ -35,6 +35,8 @@ func (e *Skin) Handle(v core.Event) {
 		e.Logger.Log(core.Fmt("%s <bump> %o", e, v.Bumped))
 	case *core.Collide:
 		e.Logger.Log(core.Fmt("%s <cannot> pass %o", e, v.Obstacle))
+	case *core.FoVRequest:
+		v.FoV = core.FoV(e.Pos, 5)
 	}
 }
 

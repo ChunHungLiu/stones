@@ -30,7 +30,7 @@ func NewWidget(x, y, w, h int) Widget {
 // DrawRel performs a TermDraw relative to the location and size of the Widget.
 func (w *Widget) DrawRel(x, y int, g Glyph) {
 	if InBounds(x, y, w.w, w.h) {
-		TermDraw(x+w.x, y+w.h, g)
+		TermDraw(x+w.x, y+w.y, g)
 	}
 }
 
@@ -99,6 +99,10 @@ func (w *LogWidget) Log(msg string) {
 	}
 }
 
+func (w *LogWidget) Clear() {
+	w.cache = w.cache[:0]
+}
+
 // Update draws the cached log messages on screen.
 func (w *LogWidget) Update() {
 	for y, msg := range w.cache {
@@ -117,5 +121,30 @@ func (w *LogWidget) Update() {
 
 		// we just displayed the message, so next time should be seen
 		msg.Seen = true
+	}
+}
+
+type FoVRequest struct {
+	FoV map[Offset]*Tile
+}
+
+type CameraWidget struct {
+	Widget
+	Camera Entity
+}
+
+func NewCameraWidget(camera Entity, x, y, w, h int) *CameraWidget {
+	return &CameraWidget{Widget{x, y, w, h}, camera}
+}
+
+func (w *CameraWidget) Update() {
+	req := FoVRequest{}
+	w.Camera.Handle(&req)
+	centerx, centery := w.w/2, w.h/2
+
+	for offset, tile := range req.FoV {
+		req := RenderRequest{}
+		tile.Handle(&req)
+		w.DrawRel(centerx+offset.X, centery+offset.Y, req.Render)
 	}
 }
