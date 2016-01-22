@@ -58,6 +58,7 @@ func (w *TextWidget) Update() {
 	}
 }
 
+/// logmsg is a cached message in LogWidget.
 type logmsg struct {
 	Text  string
 	Count int
@@ -99,10 +100,6 @@ func (w *LogWidget) Log(msg string) {
 	}
 }
 
-func (w *LogWidget) Clear() {
-	w.cache = w.cache[:0]
-}
-
 // Update draws the cached log messages on screen.
 func (w *LogWidget) Update() {
 	for y, msg := range w.cache {
@@ -124,19 +121,18 @@ func (w *LogWidget) Update() {
 	}
 }
 
-type FoVRequest struct {
-	FoV map[Offset]*Tile
-}
-
+// CameraWidget is a Widget which displays an Entity field of view
 type CameraWidget struct {
 	Widget
 	Camera Entity
 }
 
+// NewCameraWidget creates a new CameraWidget with the given camera Entity.
 func NewCameraWidget(camera Entity, x, y, w, h int) *CameraWidget {
 	return &CameraWidget{Widget{x, y, w, h}, camera}
 }
 
+// Update draws the camera field of view on screen.
 func (w *CameraWidget) Update() {
 	req := FoVRequest{}
 	w.Camera.Handle(&req)
@@ -147,4 +143,9 @@ func (w *CameraWidget) Update() {
 		tile.Handle(&req)
 		w.DrawRel(centerx+offset.X, centery+offset.Y, req.Render)
 	}
+}
+
+// FoVRequest is an Event querying an Entity for a field of view.
+type FoVRequest struct {
+	FoV map[Offset]*Tile
 }
