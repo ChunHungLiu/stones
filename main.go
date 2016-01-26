@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/jlund3/stones/core"
-	"github.com/jlund3/stones/habilis"
+	"github.com/rauko1753/stones/core"
+	"github.com/rauko1753/stones/habilis"
 )
 
 func main() {

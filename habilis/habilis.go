@@ -2,7 +2,7 @@
 package habilis
 
 import (
-	"github.com/jlund3/stones/core"
+	"github.com/rauko1753/stones/core"
 )
 
 // Action is an Event requesting that an Entity perform an action.
