@@ -28,7 +28,7 @@ func (e *Skin) Handle(v core.Event) {
 		if delta, ok := core.KeyMap[key]; ok {
 			e.Pos.Handle(&core.MoveEntity{delta})
 		} else if key == 't' {
-			core.Target(e, e.Marker)
+			core.Aim(e, e.Marker, "t")
 		} else if key == core.KeyEsc {
 			e.Expired = true
 		}

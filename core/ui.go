@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/nsf/termbox-go"
 )
 
@@ -49,21 +51,33 @@ type Marker interface {
 	Mark(o Offset, g Glyph)
 }
 
-func Target(camera Entity, m Marker) (target *Tile, ok bool) {
+type Targetter struct {
+	Camera Entity
+	Marker
+	Reticle Glyph
+	Trace   *Glyph
+	Accept  string
+}
+
+// Aim allows the user to select a target from an on-screen Camera view.
+func (t Targetter) Aim() (target *Tile, ok bool) {
 	state := TermSave()
 	defer state.Restore()
 
 	req := FoVRequest{}
-	camera.Handle(&req)
+	t.Camera.Handle(&req)
 	offset := Offset{}
 
 	var key Key
-	for key != KeyEnter {
+	for !strings.Contains(t.Accept, string(key)) && key != KeyEsc {
 		state.Restore()
-		for _, o := range Trace(offset) {
-			m.Mark(o, Glyph{'*', ColorBlue})
+
+		if t.Trace != nil {
+			for _, o := range Trace(offset) {
+				t.Mark(o, *t.Trace)
+			}
 		}
-		m.Mark(offset, Glyph{'*', ColorRed})
+		t.Mark(offset, Glyph{'*', ColorRed})
 		TermRefresh()
 
 		key = GetKey()
@@ -75,4 +89,9 @@ func Target(camera Entity, m Marker) (target *Tile, ok bool) {
 	}
 
 	return req.FoV[offset], key != KeyEsc
+}
+
+// Aim allows the user to select a target from an on-screen Camera view.
+func Aim(camera Entity, marker Marker, accept string) (target *Tile, ok bool) {
+	return Targetter{camera, marker, Glyph{'*', ColorRed}, nil, accept}.Aim()
 }
