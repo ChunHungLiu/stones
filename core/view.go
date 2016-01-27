@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// We use these tables to cheaply approximate FOV, but we cache the tables so
+// We use these tables to cheaply approximate FoV, but we cache the tables so
 // we only have to compute them once.
 var tableCache = make(map[int]map[Offset]map[Offset]struct{})
 
@@ -166,4 +166,59 @@ func wallfix(fov map[Offset]*Tile, radius int) {
 			break
 		}
 	}
+}
+
+// We use these tables to cheaply approximate LoS, but we cache the tables so
+// we only have to compute them once. They are computed by reversing FoV tables
+// stored in tableCache.
+var reverseTableCache = make(map[int]map[Offset]Offset)
+
+// Trace computes a line of Offset from the origin to the goal Offset.
+// The line is simply computed, without reguard to line of sight.
+func Trace(goal Offset) []Offset {
+	// setup book keeping
+	table := getReverseTable(goal)
+	path := []Offset{}
+
+	// compute the path
+	for goal.X != 0 || goal.Y != 0 {
+		path = append(path, goal)
+		goal = table[goal]
+	}
+
+	// reverse the path
+	for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
+		path[i], path[j] = path[j], path[i]
+	}
+
+	// return path
+	return path
+}
+
+// getReverseTable gets a FoV table and reverses it for LoS computations.
+func getReverseTable(o Offset) map[Offset]Offset {
+	radius := Max(Abs(o.X), Abs(o.Y))
+	table, cached := reverseTableCache[radius]
+	if !cached {
+		table = computeReverseTable(radius)
+		reverseTableCache[radius] = table
+	}
+	return table
+}
+
+// computeReverseTable computes a LoS table by reversing a FoV table.
+func computeReverseTable(radius int) map[Offset]Offset {
+	forward, cached := tableCache[radius]
+	if !cached {
+		forward = computeTable(radius)
+		tableCache[radius] = forward
+	}
+
+	reverse := make(map[Offset]Offset)
+	for pos, edges := range forward {
+		for edge := range edges {
+			reverse[edge] = pos
+		}
+	}
+	return reverse
 }

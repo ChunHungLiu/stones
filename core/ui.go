@@ -60,6 +60,9 @@ func Target(camera Entity, m Marker) (target *Tile, ok bool) {
 	var key Key
 	for key != KeyEnter {
 		state.Restore()
+		for _, o := range Trace(offset) {
+			m.Mark(o, Glyph{'*', ColorBlue})
+		}
 		m.Mark(offset, Glyph{'*', ColorRed})
 		TermRefresh()
 
