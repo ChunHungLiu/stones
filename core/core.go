@@ -62,9 +62,14 @@ var KeyMap = map[Key]Offset{
 	'b': {-1, 1}, '1': {-1, 1},
 }
 
-// Diff returns the result of subtracting another Offset from this one.
-func (o Offset) Diff(a Offset) Offset {
+// Sub returns the result of subtracting another Offset from this one.
+func (o Offset) Sub(a Offset) Offset {
 	return Offset{o.X - a.X, o.Y - a.Y}
+}
+
+// Sub returns the result of adding another Offset to this one.
+func (o Offset) Add(a Offset) Offset {
+	return Offset{o.X + a.X, o.Y + a.Y}
 }
 
 // Max returns the maximum of x and y.

@@ -37,7 +37,7 @@ func FoV(origin *Tile, radius int) map[Offset]*Tile {
 
 		for adj := range table[off] {
 			// Add all the adjacent tiles to the field of view.
-			neighbor := tile.Adjacent[adj.Diff(off)]
+			neighbor := tile.Adjacent[adj.Sub(off)]
 			fov[adj] = neighbor
 
 			// If the neighbor is passable, push it onto the stack to continue

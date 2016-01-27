@@ -15,6 +15,7 @@ type Skin struct {
 	Pos     *core.Tile
 	Logger  *core.LogWidget
 	Expired bool
+	Marker  core.Marker
 }
 
 // Handle implements Entity for Skin.
@@ -26,6 +27,8 @@ func (e *Skin) Handle(v core.Event) {
 		key := core.GetKey()
 		if delta, ok := core.KeyMap[key]; ok {
 			e.Pos.Handle(&core.MoveEntity{delta})
+		} else if key == 't' {
+			core.Target(e, e.Marker)
 		} else if key == core.KeyEsc {
 			e.Expired = true
 		}

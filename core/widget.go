@@ -136,13 +136,22 @@ func NewCameraWidget(camera Entity, x, y, w, h int) *CameraWidget {
 func (w *CameraWidget) Update() {
 	req := FoVRequest{}
 	w.Camera.Handle(&req)
-	centerx, centery := w.w/2, w.h/2
+	cx, cy := w.center()
 
 	for offset, tile := range req.FoV {
 		req := RenderRequest{}
 		tile.Handle(&req)
-		w.DrawRel(centerx+offset.X, centery+offset.Y, req.Render)
+		w.DrawRel(cx+offset.X, cy+offset.Y, req.Render)
 	}
+}
+
+func (w *CameraWidget) Mark(o Offset, g Glyph) {
+	cx, cy := w.center()
+	w.DrawRel(cx+o.X, cy+o.Y, g)
+}
+
+func (w *CameraWidget) center() (x, y int) {
+	return w.w / 2, w.h / 2
 }
 
 // FoVRequest is an Event querying an Entity for a field of view.

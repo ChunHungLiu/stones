@@ -12,15 +12,16 @@ func main() {
 	cols, rows := 20, 10
 	tiles := core.GenStub(cols, rows)
 
-	hero := habilis.Skin{"you", core.Glyph{'@', core.ColorWhite}, &tiles[10][5], nil, false}
+	hero := habilis.Skin{"you", core.Glyph{'@', core.ColorWhite}, &tiles[10][5], nil, false, nil}
 	tiles[10][5].Occupant = &hero
 
-	goblin := habilis.Skin{"goblin", core.Glyph{'g', core.ColorYellow}, &tiles[5][5], nil, false}
+	goblin := habilis.Skin{"goblin", core.Glyph{'g', core.ColorYellow}, &tiles[5][5], nil, false, nil}
 	tiles[5][5].Occupant = &goblin
 
 	log := core.NewLogWidget(0, 11, 80, 10)
 	view := core.NewCameraWidget(&hero, 0, 0, 11, 11)
 	screen := core.Screen{log, view}
+	hero.Marker = view
 
 	hero.Logger = log
 

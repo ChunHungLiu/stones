@@ -44,3 +44,32 @@ func TermTint(c Color) {
 		cells[i].Fg = fg
 	}
 }
+
+type Marker interface {
+	Mark(o Offset, g Glyph)
+}
+
+func Target(camera Entity, m Marker) (target *Tile, ok bool) {
+	state := TermSave()
+	defer state.Restore()
+
+	req := FoVRequest{}
+	camera.Handle(&req)
+	offset := Offset{}
+
+	var key Key
+	for key != KeyEnter {
+		state.Restore()
+		m.Mark(offset, Glyph{'*', ColorRed})
+		TermRefresh()
+
+		key = GetKey()
+		delta, ok := KeyMap[key]
+		_, visible := req.FoV[offset.Add(delta)]
+		if ok && visible {
+			offset = offset.Add(delta)
+		}
+	}
+
+	return req.FoV[offset], key != KeyEsc
+}
