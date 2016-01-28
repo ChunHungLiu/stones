@@ -47,13 +47,10 @@ func TermTint(c Color) {
 	}
 }
 
-type Marker interface {
-	Mark(o Offset, g Glyph)
-}
-
+// Targetter allows for customization of on-screen targetting.
 type Targetter struct {
-	Camera Entity
-	Marker
+	Camera  Entity
+	Canvas  Entity
 	Reticle Glyph
 	Trace   *Glyph
 	Accept  string
@@ -74,10 +71,10 @@ func (t Targetter) Aim() (target *Tile, ok bool) {
 
 		if t.Trace != nil {
 			for _, o := range Trace(offset) {
-				t.Mark(o, *t.Trace)
+				t.Canvas.Handle(&Mark{o, *t.Trace})
 			}
 		}
-		t.Mark(offset, Glyph{'*', ColorRed})
+		t.Canvas.Handle(&Mark{offset, t.Reticle})
 		TermRefresh()
 
 		key = GetKey()
@@ -92,6 +89,12 @@ func (t Targetter) Aim() (target *Tile, ok bool) {
 }
 
 // Aim allows the user to select a target from an on-screen Camera view.
-func Aim(camera Entity, marker Marker, accept string) (target *Tile, ok bool) {
-	return Targetter{camera, marker, Glyph{'*', ColorRed}, nil, accept}.Aim()
+func Aim(camera, canvas Entity, accept string) (target *Tile, ok bool) {
+	return Targetter{camera, canvas, Glyph{'*', ColorRed}, nil, accept}.Aim()
+}
+
+// Mark is an Event requesting that a Glyph be drawn on Screen.
+type Mark struct {
+	Offset Offset
+	Mark   Glyph
 }

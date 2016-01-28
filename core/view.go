@@ -197,7 +197,7 @@ func Trace(goal Offset) []Offset {
 
 // getReverseTable gets a FoV table and reverses it for LoS computations.
 func getReverseTable(o Offset) map[Offset]Offset {
-	radius := Max(Abs(o.X), Abs(o.Y))
+	radius := o.Chebyshev()
 	table, cached := reverseTableCache[radius]
 	if !cached {
 		table = computeReverseTable(radius)

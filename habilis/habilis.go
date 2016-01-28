@@ -15,7 +15,7 @@ type Skin struct {
 	Pos     *core.Tile
 	Logger  *core.LogWidget
 	Expired bool
-	Marker  core.Marker
+	View    *core.CameraWidget
 }
 
 // Handle implements Entity for Skin.
@@ -28,7 +28,7 @@ func (e *Skin) Handle(v core.Event) {
 		if delta, ok := core.KeyMap[key]; ok {
 			e.Pos.Handle(&core.MoveEntity{delta})
 		} else if key == 't' {
-			core.Aim(e, e.Marker, "t")
+			core.Aim(e, e, "t")
 		} else if key == core.KeyEsc {
 			e.Expired = true
 		}
@@ -40,6 +40,8 @@ func (e *Skin) Handle(v core.Event) {
 		e.Logger.Log(core.Fmt("%s <cannot> pass %o", e, v.Obstacle))
 	case *core.FoVRequest:
 		v.FoV = core.FoV(e.Pos, 5)
+	case *core.Mark:
+		e.View.Mark(v.Offset, v.Mark)
 	}
 }
 

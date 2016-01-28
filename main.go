@@ -21,7 +21,7 @@ func main() {
 	log := core.NewLogWidget(0, 11, 80, 10)
 	view := core.NewCameraWidget(&hero, 0, 0, 11, 11)
 	screen := core.Screen{log, view}
-	hero.Marker = view
+	hero.View = view
 
 	hero.Logger = log
 

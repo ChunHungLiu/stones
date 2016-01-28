@@ -145,11 +145,13 @@ func (w *CameraWidget) Update() {
 	}
 }
 
-func (w *CameraWidget) Mark(o Offset, g Glyph) {
+// Mark draws a Glyph on screen relative to the Camera center.
+func (w *CameraWidget) Mark(offset Offset, mark Glyph) {
 	cx, cy := w.center()
-	w.DrawRel(cx+o.X, cy+o.Y, g)
+	w.DrawRel(cx+offset.X, cy+offset.Y, mark)
 }
 
+// center computes the offset of the camera center relative to the Widget.
 func (w *CameraWidget) center() (x, y int) {
 	return w.w / 2, w.h / 2
 }
