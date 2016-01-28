@@ -2,6 +2,8 @@
 package core
 
 import (
+	"math"
+
 	"github.com/nsf/termbox-go"
 )
 
@@ -70,6 +72,21 @@ func (o Offset) Sub(a Offset) Offset {
 // Sub returns the result of adding another Offset to this one.
 func (o Offset) Add(a Offset) Offset {
 	return Offset{o.X + a.X, o.Y + a.Y}
+}
+
+// Manhattan returns the L_1 distance off the Offset.
+func (o Offset) Manhattan() int {
+	return Abs(o.X) + Abs(o.Y)
+}
+
+// Euclidean returns the L_2 distance off the Offset.
+func (o Offset) Euclidean() float64 {
+	return math.Hypot(float64(o.X), float64(o.Y))
+}
+
+// Chebyshev returns the L_inf distance off the Offset.
+func (o Offset) Chebyshev() int {
+	return Max(Abs(o.X), Abs(o.Y))
 }
 
 // Max returns the maximum of x and y.
