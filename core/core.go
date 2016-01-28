@@ -69,7 +69,7 @@ func (o Offset) Sub(a Offset) Offset {
 	return Offset{o.X - a.X, o.Y - a.Y}
 }
 
-// Sub returns the result of adding another Offset to this one.
+// Add returns the result of adding another Offset to this one.
 func (o Offset) Add(a Offset) Offset {
 	return Offset{o.X + a.X, o.Y + a.Y}
 }

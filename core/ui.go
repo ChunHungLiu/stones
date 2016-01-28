@@ -47,8 +47,8 @@ func TermTint(c Color) {
 	}
 }
 
-// Targetter allows for customization of on-screen targetting.
-type Targetter struct {
+// Targeter allows for customization of on-screen targeting.
+type Targeter struct {
 	Camera  Entity
 	Canvas  Entity
 	Reticle Glyph
@@ -57,7 +57,7 @@ type Targetter struct {
 }
 
 // Aim allows the user to select a target from an on-screen Camera view.
-func (t Targetter) Aim() (target *Tile, ok bool) {
+func (t Targeter) Aim() (target *Tile, ok bool) {
 	state := TermSave()
 	defer state.Restore()
 
@@ -90,7 +90,7 @@ func (t Targetter) Aim() (target *Tile, ok bool) {
 
 // Aim allows the user to select a target from an on-screen Camera view.
 func Aim(camera, canvas Entity, accept string) (target *Tile, ok bool) {
-	return Targetter{camera, canvas, Glyph{'*', ColorRed}, nil, accept}.Aim()
+	return Targeter{camera, canvas, Glyph{'*', ColorRed}, nil, accept}.Aim()
 }
 
 // Mark is an Event requesting that a Glyph be drawn on Screen.
