@@ -111,3 +111,26 @@ func (l Label) Update() {
 		TermDraw(l.X+i, l.Y, Glyph{ch, ColorWhite})
 	}
 }
+
+// Border is a Visual which displays a border
+type Border struct {
+	Widget
+	Vertical, Horizontal Glyph
+}
+
+// NewBorder creates a new Border with the given parameters.
+func NewBorder(vert, horiz Glyph, x, y, w, h int) *Border {
+	return &Border{Widget{x, y, w, h}, vert, horiz}
+}
+
+// Update draws the Border on screen.
+func (w *Border) Update() {
+	for y := 0; y < w.h; y++ {
+		w.DrawRel(0, y, w.Vertical)
+		w.DrawRel(w.w-1, y, w.Vertical)
+	}
+	for x := 0; x < w.w; x++ {
+		w.DrawRel(x, 0, w.Horizontal)
+		w.DrawRel(x, w.h-1, w.Horizontal)
+	}
+}
