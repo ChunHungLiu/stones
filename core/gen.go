@@ -43,3 +43,7 @@ func GenStub(cols, rows int) [][]Tile {
 
 	return tiles
 }
+
+// TODO Add heightmap
+// TODO Add cavern
+// TODO Add scatter

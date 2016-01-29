@@ -161,3 +161,5 @@ func (f Form) Run() FormResult {
 		}
 	}
 }
+
+// TODO Add Term interface with termbox and gopherlibterminal implementations

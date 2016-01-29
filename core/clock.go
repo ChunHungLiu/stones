@@ -99,3 +99,5 @@ func (c *DeltaClock) Advance() map[Entity]struct{} {
 	c.head = c.head.link
 	return events
 }
+
+// TODO Add distance based delay calculator

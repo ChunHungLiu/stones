@@ -77,3 +77,5 @@ type Bump struct {
 type Collide struct {
 	Obstacle Entity
 }
+
+// TODO Add data drive Entity construction

@@ -91,3 +91,5 @@ func newXorshift(seed int64) rand.Source {
 	x.Seed(seed)
 	return &x
 }
+
+// TODO Completely wrap math/rand

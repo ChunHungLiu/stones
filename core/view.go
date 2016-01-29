@@ -222,3 +222,5 @@ func computeReverseTable(radius int) map[Offset]Offset {
 	}
 	return reverse
 }
+
+// TODO Add LoS using Trace

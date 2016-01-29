@@ -127,3 +127,5 @@ func (g *NameGen) backoff(context string) string {
 func (g *NameGen) sample(context string) byte {
 	return g.getCounter(g.backoff(context)).Sample()
 }
+
+// TODO Add dialog cache

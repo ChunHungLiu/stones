@@ -98,3 +98,16 @@ type Mark struct {
 	Offset Offset
 	Mark   Glyph
 }
+
+// Label is a Visual which displays fixed text on screen.
+type Label struct {
+	Text string
+	X, Y int
+}
+
+// Update draws the Label text at the given location.
+func (l Label) Update() {
+	for i, ch := range l.Text {
+		TermDraw(l.X+i, l.Y, Glyph{ch, ColorWhite})
+	}
+}

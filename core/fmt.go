@@ -137,7 +137,7 @@ func conjugateThird(verb string) string {
 // getVerb conjugates a verb given a particular subject.
 func getVerb(verb, subject interface{}) string {
 	phrase := strings.Fields(fmt.Sprintf("%v", verb))
-	// TODO handle both plural and singular nouns (currently just singular)
+	// TODO Handle both plural and singular nouns (currently just singular)
 	if fmt.Sprintf("%v", subject) == "you" {
 		phrase[0] = conjugateSecond(phrase[0])
 	} else {
@@ -156,3 +156,5 @@ func makeSentence(s string) string {
 	}
 	return s + "."
 }
+
+// TODO Add possessives to the format language

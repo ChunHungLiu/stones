@@ -4,19 +4,6 @@ import (
 	"fmt"
 )
 
-// Label is a Visual which displays fixed text on screen.
-type Label struct {
-	Text string
-	X, Y int
-}
-
-// Update draws the Label text at the given location.
-func (l Label) Update() {
-	for i, ch := range l.Text {
-		TermDraw(l.X+i, l.Y, Glyph{ch, ColorWhite})
-	}
-}
-
 // Widget serves as a base to various Visual which need relative drawing.
 type Widget struct {
 	x, y, w, h int
@@ -160,3 +147,5 @@ func (w *CameraWidget) center() (x, y int) {
 type FoVRequest struct {
 	FoV map[Offset]*Tile
 }
+
+// TODO Add percent bar widget
