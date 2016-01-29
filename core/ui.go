@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/nsf/termbox-go"
 )
@@ -133,4 +134,52 @@ func (w *Border) Update() {
 		w.DrawRel(x, 0, w.Horizontal)
 		w.DrawRel(x, w.h-1, w.Horizontal)
 	}
+}
+
+// TextBox is an Element which allows a user to enter custom text.
+type TextBox struct {
+	Text string
+	Len  int
+	X, Y int
+}
+
+// Update draws the current text.
+func (t *TextBox) Update(selected bool) {
+	var color Color
+	if selected {
+		color = ColorLightWhite
+	} else {
+		color = ColorWhite
+	}
+
+	for x := 0; x < t.Len; x++ {
+		if x < len(t.Text) {
+			TermDraw(t.X+x, t.Y, Glyph{rune(t.Text[x]), color})
+		} else {
+			TermDraw(t.X+x, t.Y, Glyph{'_', color})
+		}
+	}
+}
+
+// Activate lets the user enter text into the TextBox.
+func (t *TextBox) Activate() FormResult {
+	old := t.Text
+	t.Text = ""
+	t.Update(true)
+	TermRefresh()
+
+	var key Key
+	for key != KeyEnter && key != KeyEsc {
+		key = GetKey()
+		if unicode.IsPrint(rune(key)) {
+			t.Text += string(key)
+		}
+		t.Update(true)
+		TermRefresh()
+	}
+
+	if key == KeyEsc {
+		t.Text = old
+	}
+	return nil
 }
