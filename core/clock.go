@@ -12,7 +12,14 @@ type deltanode struct {
 }
 
 // DeltaClock implements a data structure which allows for fast scheduling.
-// See http://stonesrl.blogspot.com/2013/02/delta-clock.html for more info.
+//
+// The DeltaClock is essentially a linked list in which each node stores a
+// collection of Entity events, and a delta (in time) until the next node.
+// Since each node stores the time until the next node, the total time until
+// any one node is the result of the sum of the deltas of all the previous
+// nodes. Consequently, advancing the clock can be done in O(1) time. Adding
+// new events can be done in O(n) time, where n is the number of nodes (not the
+// number of events!).
 type DeltaClock struct {
 	head  *deltanode
 	nodes map[Entity]*deltanode
@@ -29,7 +36,7 @@ func NewDeltaClock() *DeltaClock {
 // ensure a unique scheduling delta.
 //
 // As an example, suppose we repeatedly schedule event A with deltas of 1,
-// event B with deltas of 1.5, and event c with deltas of 2. It is *not* the
+// event B with deltas of 1.5, and event C with deltas of 2. It is *not* the
 // case that A will fire 3 times for every 2 times B fires. Instead, both A and
 // B will fire at the same rate, but A will always go first as it has a lower
 // fractional part in its delta. It *is* the case that A and B will fire twice
@@ -49,7 +56,7 @@ func (c *DeltaClock) Schedule(e Entity, delta float64) {
 		// if the desired node already exists, just reuse it
 		node = curr
 	} else {
-		// desired didn't exist, so create it, with a link to curr node
+		// desired node didn't exist, so create it, with a link to curr node
 		node = &deltanode{delta, curr, make(map[Entity]struct{})}
 
 		if prev == nil {
@@ -66,7 +73,7 @@ func (c *DeltaClock) Schedule(e Entity, delta float64) {
 		}
 	}
 
-	// ad the event to the node
+	// add the event to the node
 	node.events[e] = struct{}{}
 	c.nodes[e] = node
 }
