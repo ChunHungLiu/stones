@@ -7,7 +7,9 @@ import (
 // boundary is a special marker for beginning and end of names.
 var boundary = "\x00"
 
-// counter implements a categorical distribution over byte events.
+// counter implements a categorical distribution over byte events. Event counts
+// are stored unnormalized, but we also store the count total so we can
+// normalize when needed.
 type counter struct {
 	Counts map[byte]float64
 	Total  float64
@@ -22,11 +24,14 @@ func newCounter(support map[byte]struct{}, prior float64) *counter {
 	return &counter{counts, float64(len(counts)) * prior}
 }
 
+// Observe adds mass (given by count) for a particular byte event.
 func (c *counter) Observe(b byte, count float64) {
 	c.Counts[b] += count
 	c.Total += count
 }
 
+// Sample generates a byte event from the normalized categorical distribution
+// represented by the current counts.
 func (c *counter) Sample() byte {
 	sample := RandFloat() * c.Total
 	for b, count := range c.Counts {
@@ -41,6 +46,10 @@ func (c *counter) Sample() byte {
 
 // NameGen is a random generator based on an interpolated Markov process with a
 // simplified Katz back-off scheme.
+//
+// The NameGen is trained by feeding name data through Observe. Depending on the
+// parameterization and enough training data, calls to Generate will result in
+// similar sounding names.
 type NameGen struct {
 	support map[byte]struct{}
 	counts  map[string]*counter
@@ -49,6 +58,13 @@ type NameGen struct {
 }
 
 // NewNameGen creates an empty NameGen with the given parameters.
+//
+// The order determines how many characters to consider at any given place in a
+// name. Higher orders will result in more consistent results, as we can better
+// model character and syllabic dependencies, but we will also require
+// exponentially more data to properly learn the patterns. The prior determines
+// how much we trust our data. Typically it is fairly low (less than 1). Higher
+// values allow the generator to deviate more from the learned name model.
 func NewNameGen(order int, prior float64) *NameGen {
 	support := map[byte]struct{}{boundary[0]: {}}
 	counts := make(map[string]*counter)
@@ -105,7 +121,7 @@ func (g *NameGen) Generate() string {
 	return seq[:len(seq)-1]
 }
 
-// backoff computes Katz back-off with a threshold of 0 and weight of 1.
+// backoff computes Katz back-off context with a threshold of 0 and weight of 1.
 func (g *NameGen) backoff(context string) string {
 	if len(context) > g.order {
 		context = context[len(context)-g.order:]
