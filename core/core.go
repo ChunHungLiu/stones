@@ -52,7 +52,8 @@ type Offset struct {
 	X, Y int
 }
 
-// KeyMap stores default directional Key values.
+// KeyMap stores default directional Key values. This dictionary can be edited
+// to affect any core functions which require knowledge of directional keys.
 var KeyMap = map[Key]Offset{
 	'h': {-1, 0}, '4': {-1, 0},
 	'l': {1, 0}, '6': {1, 0},

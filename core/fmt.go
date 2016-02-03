@@ -67,6 +67,7 @@ func Fmt(s string, args ...interface{}) string {
 	return makeSentence(formatRE.ReplaceAllStringFunc(s, replace))
 }
 
+// Data needed by Fmt helper functions. These should be regarded as constants.
 var (
 	formatRE             = regexp.MustCompile("%s|%o|%v|%x|<.+?>")
 	articles             = []string{"the", "a"}
@@ -90,12 +91,11 @@ func includesArticle(name string) bool {
 	return false
 }
 
-// getName returns the string name for a particular noun.
+// getName returns the string name for a particular noun. If needed, the
+// article 'the' is prepended to the name.
 func getName(noun interface{}) string {
 	name := fmt.Sprintf("%v", noun)
-	if name == "you" {
-		return "you"
-	} else if includesArticle(name) || strings.Title(name) == name {
+	if name == "you" || includesArticle(name) || strings.Title(name) == name {
 		return name
 	}
 	return "the " + name
@@ -146,7 +146,7 @@ func getVerb(verb, subject interface{}) string {
 	return strings.Join(phrase, " ")
 }
 
-// makeSentence ensures proper capitolization and punctuation.
+// makeSentence ensures proper capitalization and punctuation.
 func makeSentence(s string) string {
 	s = strings.ToUpper(s[:1]) + s[1:]
 	for _, punctuation := range endPunctuation {
