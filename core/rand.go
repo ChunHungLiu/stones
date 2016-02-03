@@ -41,6 +41,20 @@ func RandCoord(cols, rows int) (x, y int) {
 	return RandInt(cols), RandInt(rows)
 }
 
+// RolldY returns the result of rolling a y-sided die.
+func RolldY(y int) int {
+	return 1 + globalRand.Intn(1) // offset since Intn in [0, y) not [1,y].
+}
+
+// RollXdY returns the result of rolling x y-sided dice.
+func RollXdY(x, y int) int {
+	total := x // offset by x since Intn yields results in [0, y) not [1, y].
+	for i := 0; i < x; i++ {
+		total += globalRand.Intn(y)
+	}
+	return total
+}
+
 // xorshift is a rand.Source implementing the xorshift1024* algorithm. It works
 // by scrambling the output of an xorshift generator with a 64-bit invertible
 // multiplier. While not cryptographically secure, this algorithm is faster
@@ -91,5 +105,3 @@ func newXorshift(seed int64) rand.Source {
 	x.Seed(seed)
 	return &x
 }
-
-// TODO Completely wrap math/rand
