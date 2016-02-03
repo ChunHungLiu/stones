@@ -14,14 +14,15 @@ func NewWidget(x, y, w, h int) Widget {
 	return Widget{x, y, w, h}
 }
 
-// DrawRel performs a TermDraw relative to the location and size of the Widget.
+// DrawRel performs a TermDraw relative to the location of the Widget.
+// Nothing outside the bounds of the Widget will be drawn.
 func (w *Widget) DrawRel(x, y int, g Glyph) {
 	if InBounds(x, y, w.w, w.h) {
 		TermDraw(x+w.x, y+w.y, g)
 	}
 }
 
-// TextWidget displays dynamic text on the screen.
+// TextWidget displays dynamically bound text on the screen.
 type TextWidget struct {
 	Widget
 	Binding func() string
@@ -45,7 +46,7 @@ func (w *TextWidget) Update() {
 	}
 }
 
-/// logmsg is a cached message in LogWidget.
+// logmsg is a cached message in LogWidget.
 type logmsg struct {
 	Text  string
 	Count int
