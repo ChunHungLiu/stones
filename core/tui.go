@@ -7,34 +7,45 @@ import (
 // Label is a Visual which displays fixed text on screen.
 type Label struct {
 	Text string
+	Fg   Color
 	X, Y int
 }
 
+// NewLabel creates a new label with the given text.
+func NewLabel(text string, x, y int) *Label {
+	return &Label{text, ColorWhite, x, y}
+}
+
 // Update draws the Label text at the given location.
-func (l Label) Update() {
+func (l *Label) Update() {
 	for i, ch := range l.Text {
-		TermDraw(l.X+i, l.Y, Glyph{ch, ColorWhite})
+		TermDraw(l.X+i, l.Y, Glyph{ch, l.Fg})
 	}
 }
 
 // Border is a Visual which displays a border
 type Border struct {
 	Widget
-	Vertical, Horizontal Glyph
+	UpperLeft, UpperRight, LowerLeft, LowerRight Glyph
+	Vertical, Horizontal                         Glyph
 }
 
 // NewBorder creates a new Border with the given parameters.
 func NewBorder(vert, horiz Glyph, x, y, w, h int) *Border {
-	return &Border{Widget{x, y, w, h}, vert, horiz}
+	return &Border{Widget{x, y, w, h}, horiz, horiz, horiz, horiz, vert, horiz}
 }
 
 // Update draws the Border on screen.
 func (w *Border) Update() {
-	for y := 0; y < w.h; y++ {
+	w.DrawRel(0, 0, w.UpperLeft)
+	w.DrawRel(w.w-1, 0, w.UpperRight)
+	w.DrawRel(0, w.h-1, w.LowerLeft)
+	w.DrawRel(w.w-1, w.h-1, w.LowerRight)
+	for y := 1; y < w.h-1; y++ {
 		w.DrawRel(0, y, w.Vertical)
 		w.DrawRel(w.w-1, y, w.Vertical)
 	}
-	for x := 0; x < w.w; x++ {
+	for x := 1; x < w.w-1; x++ {
 		w.DrawRel(x, 0, w.Horizontal)
 		w.DrawRel(x, w.h-1, w.Horizontal)
 	}
