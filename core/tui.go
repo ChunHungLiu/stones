@@ -134,6 +134,7 @@ type colorSelect struct {
 	NormalFg, SelectedFg Color
 }
 
+// getColor returns a color based on whether the Element is selected or not.
 func (s colorSelect) getColor(selected bool) Color {
 	if selected {
 		return s.SelectedFg
