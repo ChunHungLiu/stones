@@ -132,20 +132,31 @@ type Form struct {
 	Elements []Element
 }
 
+// update runs Update on each Visual and Element. Used in both Update and Run.
+func (f Form) update(selected int) {
+	TermClear()
+	for _, v := range f.Visuals {
+		v.Update()
+	}
+	for i, e := range f.Elements {
+		e.Update(i == selected)
+	}
+	TermRefresh()
+}
+
+// Update clears the screen, and draws each Visual and Element in the Form.
+// No Element is considered selected during the update.
+func (f Form) Update() {
+	f.update(-1)
+}
+
 // Run allows the user to select and activate Form Elements. Run returns any
 // non-nil FormResult from an activated Element. Additionally, ResultEsc is
 // returned if the user hits escape.
 func (f Form) Run() FormResult {
 	curr := 0
 	for {
-		TermClear()
-		for _, v := range f.Visuals {
-			v.Update()
-		}
-		for i, e := range f.Elements {
-			e.Update(i == curr)
-		}
-		TermRefresh()
+		f.update(curr)
 
 		switch key := GetKey(); key {
 		case KeyEnter:

@@ -7,13 +7,13 @@ import (
 // Label is a Visual which displays fixed text on screen.
 type Label struct {
 	Text string
-	Fg   Color
 	X, Y int
+	Fg   Color
 }
 
 // NewLabel creates a new label with the given text.
 func NewLabel(text string, x, y int) *Label {
-	return &Label{text, ColorWhite, x, y}
+	return &Label{text, x, y, ColorWhite}
 }
 
 // Update draws the Label text at the given location.
@@ -56,22 +56,25 @@ type TextBox struct {
 	Text string
 	Len  int
 	X, Y int
+
+	colorSelect
+	ExtraCh rune
+}
+
+// NewTextBox returns a new TextBox with the given text.
+func NewTextBox(text string, length, x, y int) *TextBox {
+	return &TextBox{text, length, x, y, colorSelect{ColorWhite, ColorLightWhite}, '_'}
 }
 
 // Update draws the current text.
 func (t *TextBox) Update(selected bool) {
-	var color Color
-	if selected {
-		color = ColorLightWhite
-	} else {
-		color = ColorWhite
-	}
+	color := t.getColor(selected)
 
 	for x := 0; x < t.Len; x++ {
 		if x < len(t.Text) {
 			TermDraw(t.X+x, t.Y, Glyph{rune(t.Text[x]), color})
 		} else {
-			TermDraw(t.X+x, t.Y, Glyph{'_', color})
+			TermDraw(t.X+x, t.Y, Glyph{t.ExtraCh, color})
 		}
 	}
 }
@@ -97,6 +100,46 @@ func (t *TextBox) Activate() FormResult {
 		t.Text = old
 	}
 	return nil
+}
+
+// Submit is a button which submits a particular FormResult.
+type Submit struct {
+	Text   string
+	X, Y   int
+	Result FormResult
+
+	colorSelect
+}
+
+// NewSubmit creates a new Submit with the given result.
+func NewSubmit(text string, x, y int, result FormResult) *Submit {
+	return &Submit{text, x, y, result, colorSelect{ColorWhite, ColorLightWhite}}
+}
+
+// Update displays the Submit on screen.
+func (s *Submit) Update(selected bool) {
+	color := s.getColor(selected)
+	for i, ch := range s.Text {
+		TermDraw(s.X+i, s.Y, Glyph{ch, color})
+	}
+}
+
+// Activate returns the Submit FormResult.
+func (s *Submit) Activate() FormResult {
+	return s.Result
+}
+
+// colorSelect is used to let an Element have customizable Color selection.
+type colorSelect struct {
+	NormalFg, SelectedFg Color
+}
+
+func (s colorSelect) getColor(selected bool) Color {
+	if selected {
+		return s.SelectedFg
+	} else {
+		return s.NormalFg
+	}
 }
 
 // TODO Add TextDump (scroll through large text)
