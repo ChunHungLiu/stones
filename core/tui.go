@@ -141,5 +141,3 @@ func (s colorSelect) getColor(selected bool) Color {
 		return s.NormalFg
 	}
 }
-
-// TODO Add TextDump (scroll through large text)

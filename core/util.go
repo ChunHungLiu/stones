@@ -98,3 +98,42 @@ type Mark struct {
 	Offset Offset
 	Mark   Glyph
 }
+
+// TextDump displays a large amount of text, with scrolling.
+// Useful for things like displaying large help files.
+type TextDump struct {
+	Title, Text string
+	Fg          Color
+}
+
+// NewTextDump creates a new TextDump with the given title and text.
+func NewTextDump(title, text string) *TextDump {
+	return &TextDump{title, text, ColorWhite}
+}
+
+// Run displays the TextDump text, and allows the user to scroll through it.
+func (t *TextDump) Run() {
+	_, rows := termbox.Size()
+	lines := strings.Split(t.Text, "\n")
+	currline := 0
+	var key Key
+
+	for key != KeyEsc {
+		TermClear()
+		for x, ch := range t.Title {
+			TermDraw(x, 0, Glyph{ch, t.Fg})
+		}
+		for y, line := range lines[currline : currline+rows-1] {
+			for x, ch := range line {
+				TermDraw(x, y+1, Glyph{ch, t.Fg})
+			}
+		}
+		TermRefresh()
+
+		key = GetKey()
+		if delta, ok := KeyMap[key]; ok && delta.X == 0 {
+			currline = Clamp(0, currline+delta.Y, len(lines)-rows)
+		}
+		// TODO allow bigger jumps while scrolling TextDump than KeyMap provides
+	}
+}
