@@ -113,7 +113,7 @@ func NewTextDump(title, text string) *TextDump {
 
 // Run displays the TextDump text, and allows the user to scroll through it.
 func (t *TextDump) Run() {
-	_, rows := termbox.Size()
+	cols, rows := termbox.Size()
 	lines := strings.Split(t.Text, "\n")
 	currline := 0
 	var key Key
@@ -132,8 +132,12 @@ func (t *TextDump) Run() {
 
 		key = GetKey()
 		if delta, ok := KeyMap[key]; ok && delta.X == 0 {
-			currline = Clamp(0, currline+delta.Y, len(lines)-rows)
+			currline += delta.Y
+		} else if key == KeyPgup {
+			currline -= cols / 2
+		} else if key == KeyPgdn {
+			currline += cols / 2
 		}
-		// TODO allow bigger jumps while scrolling TextDump than KeyMap provides
+		currline = Clamp(0, currline, len(lines)-rows)
 	}
 }

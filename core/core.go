@@ -45,6 +45,8 @@ const (
 	KeyEsc   Key = Key(termbox.KeyEsc)
 	KeyEnter Key = Key(termbox.KeyEnter)
 	KeyCtrlC Key = Key(termbox.KeyCtrlC)
+	KeyPgup  Key = Key(termbox.KeyPgup)
+	KeyPgdn  Key = Key(termbox.KeyPgdn)
 )
 
 // Offset stores a 2-dimensional int vector.
