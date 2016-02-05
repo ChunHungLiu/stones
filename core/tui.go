@@ -6,21 +6,18 @@ import (
 
 // Label is a Visual which displays fixed text on screen.
 type Label struct {
-	Text string
-	X, Y int
-	Fg   Color
+	texter
+	Fg Color
 }
 
 // NewLabel creates a new label with the given text.
 func NewLabel(text string, x, y int) *Label {
-	return &Label{text, x, y, ColorWhite}
+	return &Label{texter{text, x, y}, ColorWhite}
 }
 
 // Update draws the Label text at the given location.
 func (l *Label) Update() {
-	for i, ch := range l.Text {
-		TermDraw(l.X+i, l.Y, Glyph{ch, l.Fg})
-	}
+	l.drawText(l.Fg)
 }
 
 // Border is a Visual which displays a border
@@ -53,9 +50,8 @@ func (w *Border) Update() {
 
 // TextBox is an Element which allows a user to enter custom text.
 type TextBox struct {
-	Text string
-	Len  int
-	X, Y int
+	texter
+	Len int
 
 	colorSelect
 	ExtraCh rune
@@ -63,19 +59,15 @@ type TextBox struct {
 
 // NewTextBox returns a new TextBox with the given text.
 func NewTextBox(text string, length, x, y int) *TextBox {
-	return &TextBox{text, length, x, y, colorSelect{ColorWhite, ColorLightWhite}, '_'}
+	return &TextBox{texter{text, x, y}, length, colorSelect{ColorWhite, ColorLightWhite}, '_'}
 }
 
 // Update draws the current text.
 func (t *TextBox) Update(selected bool) {
 	color := t.getColor(selected)
-
-	for x := 0; x < t.Len; x++ {
-		if x < len(t.Text) {
-			TermDraw(t.X+x, t.Y, Glyph{rune(t.Text[x]), color})
-		} else {
-			TermDraw(t.X+x, t.Y, Glyph{t.ExtraCh, color})
-		}
+	t.drawText(color)
+	for x := len(t.Text); x < t.Len; x++ {
+		TermDraw(t.X+x, t.Y, Glyph{t.ExtraCh, color})
 	}
 }
 
@@ -104,8 +96,7 @@ func (t *TextBox) Activate() FormResult {
 
 // Button is an Element which runs a callback upon activation.
 type Button struct {
-	Text    string
-	X, Y    int
+	texter
 	Binding func() FormResult
 
 	colorSelect
@@ -113,7 +104,7 @@ type Button struct {
 
 // NewButton creats a new Button with the given callback.
 func NewButton(text string, x, y int, callback func() FormResult) *Button {
-	return &Button{text, x, y, callback, colorSelect{ColorWhite, ColorLightWhite}}
+	return &Button{texter{text, x, y}, callback, colorSelect{ColorWhite, ColorLightWhite}}
 }
 
 // NewSubmit creates a new Button which simply returns a FormResult.
@@ -123,10 +114,7 @@ func NewSubmit(text string, x, y int, result FormResult) *Button {
 
 // Update displays the Button on screen.
 func (b *Button) Update(selected bool) {
-	color := b.getColor(selected)
-	for i, ch := range b.Text {
-		TermDraw(b.X+i, b.Y, Glyph{ch, color})
-	}
+	b.drawText(b.getColor(selected))
 }
 
 // Activate runs the Button callback and returns the FormResult.
@@ -145,4 +133,15 @@ func (s colorSelect) getColor(selected bool) Color {
 		return s.SelectedFg
 	}
 	return s.NormalFg
+}
+
+type texter struct {
+	Text string
+	X, Y int
+}
+
+func (t texter) drawText(color Color) {
+	for i, ch := range t.Text {
+		TermDraw(t.X+i, t.Y, Glyph{ch, color})
+	}
 }
