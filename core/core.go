@@ -141,12 +141,9 @@ func InBounds(x, y, w, h int) bool {
 }
 
 // Round returns x rounded ndigits digits after the decimal point.
+// Values are rounded to the closest multiple of 10 to the power of -ndigits.
+// If two multiples are equally close, rounding is down away from 0.
 func Round(x float64, ndigits int) float64 {
-	pow := math.Pow(10, float64(ndigits))
-	digit := pow * x
-	_, frac := math.Modf(digit)
-	if frac >= .5 {
-		return math.Ceil(digit) / pow
-	}
-	return math.Floor(digit) / pow
+	shift := math.Pow(10, float64(ndigits))
+	return math.Copysign(math.Floor(math.Abs(x)*shift+.5)/shift, x)
 }
