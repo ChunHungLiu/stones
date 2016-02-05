@@ -147,7 +147,6 @@ func Round(x float64, ndigits int) float64 {
 	_, frac := math.Modf(digit)
 	if frac >= .5 {
 		return math.Ceil(digit) / pow
-	} else {
-		return math.Floor(digit) / pow
 	}
+	return math.Floor(digit) / pow
 }
