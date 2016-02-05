@@ -149,4 +149,56 @@ type FoVRequest struct {
 	FoV map[Offset]*Tile
 }
 
-// TODO Add percent bar widget
+// PercentBarWidget displays a percent bar based on a bound percent function.
+type PercentBarWidget struct {
+	Widget
+	Binding     func() float64
+	Horizontal  bool
+	Invert      bool
+	Fill, Empty Glyph
+}
+
+// NewPercentBarWidget creates a new PercentBarWidget with the given binding.
+func NewPercentBarWidget(binding func() float64, x, y, w, h int) *PercentBarWidget {
+	return &PercentBarWidget{Widget{x, y, w, h}, binding, true, false, Glyph{'*', ColorWhite}, Glyph{'-', ColorWhite}}
+}
+
+// fillsize computes the size of filled part of the bar on the binding func.
+func (b *PercentBarWidget) fillsize() int {
+	var max int
+	if b.Horizontal {
+		max = b.w
+	} else {
+		max = b.h
+	}
+	return Clamp(0, int(float64(max)*Round(b.Binding(), 2)), max)
+}
+
+// isfill returns true if the given x, y is a fill char under the fillsize.
+func (b *PercentBarWidget) isfill(x, y, fillsize int) bool {
+	if b.Horizontal && !b.Invert {
+		return x < fillsize
+	} else if b.Horizontal && b.Invert {
+		return b.w-x < fillsize
+	} else if !b.Horizontal && !b.Invert {
+		return b.h-y < fillsize
+	} else {
+		return y < fillsize
+	}
+}
+
+// Update displays the PercentBar on screen.
+func (b *PercentBarWidget) Update() {
+	fillsize := b.fillsize()
+	for x := 0; x < b.w; x++ {
+		for y := 0; y < b.h; y++ {
+			var ch Glyph
+			if b.isfill(x, y, fillsize) {
+				ch = b.Fill
+			} else {
+				ch = b.Empty
+			}
+			b.DrawRel(x, y, ch)
+		}
+	}
+}

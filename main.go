@@ -20,7 +20,13 @@ func main() {
 
 	log := core.NewLogWidget(0, 11, 80, 10)
 	view := core.NewCameraWidget(&hero, 0, 0, 11, 11)
-	screen := core.Screen{log, view}
+	bar := core.NewPercentBarWidget(func() float64 {
+		return .75
+	}, 0, 21, 11, 11)
+	bar.Horizontal = false
+	bar.Fill = core.Glyph{'*', core.ColorRed}
+	bar.Invert = false
+	screen := core.Screen{log, view, bar}
 	hero.View = view
 
 	hero.Logger = log
@@ -29,8 +35,4 @@ func main() {
 		screen.Update()
 		hero.Handle(&habilis.Action{})
 	}
-
-	core.TermTint(core.ColorRed)
-	core.TermRefresh()
-	core.GetKey()
 }

@@ -139,3 +139,15 @@ func Clamp(min, val, max int) int {
 func InBounds(x, y, w, h int) bool {
 	return 0 <= x && x < w && 0 <= y && y < h
 }
+
+// Round returns x rounded ndigits digits after the decimal point.
+func Round(x float64, ndigits int) float64 {
+	pow := math.Pow(10, float64(ndigits))
+	digit := pow * x
+	_, frac := math.Modf(digit)
+	if frac >= .5 {
+		return math.Ceil(digit) / pow
+	} else {
+		return math.Floor(digit) / pow
+	}
+}
