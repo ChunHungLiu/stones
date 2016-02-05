@@ -21,9 +21,9 @@ func main() {
 	log := core.NewLogWidget(0, 11, 80, 10)
 	view := core.NewCameraWidget(&hero, 0, 0, 11, 11)
 	bar := core.NewPercentBarWidget(func() float64 {
-		return .75
+		return .995
 	}, 0, 21, 11, 11)
-	bar.Horizontal = false
+	bar.Vertical = false
 	bar.Fill = core.Glyph{'*', core.ColorRed}
 	bar.Invert = false
 	screen := core.Screen{log, view, bar}
