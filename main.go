@@ -26,6 +26,7 @@ func main() {
 	bar.Vertical = false
 	bar.Fill = core.Glyph{'*', core.ColorRed}
 	bar.Invert = false
+	bar.RoundDigits = 4
 	screen := core.Screen{log, view, bar}
 	hero.View = view
 

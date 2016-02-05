@@ -155,12 +155,13 @@ type PercentBarWidget struct {
 	Binding     func() float64
 	Vertical    bool
 	Invert      bool
+	RoundDigits int
 	Fill, Empty Glyph
 }
 
 // NewPercentBarWidget creates a new PercentBarWidget with the given binding.
 func NewPercentBarWidget(binding func() float64, x, y, w, h int) *PercentBarWidget {
-	return &PercentBarWidget{Widget{x, y, w, h}, binding, false, false, Glyph{'*', ColorWhite}, Glyph{'-', ColorWhite}}
+	return &PercentBarWidget{Widget{x, y, w, h}, binding, false, false, 2, Glyph{'*', ColorWhite}, Glyph{'-', ColorWhite}}
 }
 
 // fillsize computes the size of filled part of the bar on the binding func.
@@ -171,7 +172,7 @@ func (b *PercentBarWidget) fillsize() int {
 	} else {
 		max = b.w
 	}
-	return Clamp(0, int(float64(max)*Round(b.Binding(), 2)), max)
+	return Clamp(0, int(float64(max)*Round(b.Binding(), b.RoundDigits)), max)
 }
 
 // isfill returns true if the given x, y is a fill char under the fillsize.
