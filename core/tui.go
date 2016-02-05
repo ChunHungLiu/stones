@@ -102,31 +102,36 @@ func (t *TextBox) Activate() FormResult {
 	return nil
 }
 
-// Submit is a button which submits a particular FormResult.
-type Submit struct {
-	Text   string
-	X, Y   int
-	Result FormResult
+// Button is an Element which runs a callback upon activation.
+type Button struct {
+	Text    string
+	X, Y    int
+	Binding func() FormResult
 
 	colorSelect
 }
 
-// NewSubmit creates a new Submit with the given result.
-func NewSubmit(text string, x, y int, result FormResult) *Submit {
-	return &Submit{text, x, y, result, colorSelect{ColorWhite, ColorLightWhite}}
+// NewButton creats a new Button with the given callback.
+func NewButton(text string, x, y int, callback func() FormResult) *Button {
+	return &Button{text, x, y, callback, colorSelect{ColorWhite, ColorLightWhite}}
 }
 
-// Update displays the Submit on screen.
-func (s *Submit) Update(selected bool) {
-	color := s.getColor(selected)
-	for i, ch := range s.Text {
-		TermDraw(s.X+i, s.Y, Glyph{ch, color})
+// NewSubmit creates a new Button which simply returns a FormResult.
+func NewSubmit(text string, x, y int, result FormResult) *Button {
+	return NewButton(text, x, y, func() FormResult { return result })
+}
+
+// Update displays the Button on screen.
+func (b *Button) Update(selected bool) {
+	color := b.getColor(selected)
+	for i, ch := range b.Text {
+		TermDraw(b.X+i, b.Y, Glyph{ch, color})
 	}
 }
 
-// Activate returns the Submit FormResult.
-func (s *Submit) Activate() FormResult {
-	return s.Result
+// Activate runs the Button callback and returns the FormResult.
+func (b *Button) Activate() FormResult {
+	return b.Binding()
 }
 
 // colorSelect is used to let an Element have customizable Color selection.
