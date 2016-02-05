@@ -143,7 +143,6 @@ type colorSelect struct {
 func (s colorSelect) getColor(selected bool) Color {
 	if selected {
 		return s.SelectedFg
-	} else {
-		return s.NormalFg
 	}
+	return s.NormalFg
 }
