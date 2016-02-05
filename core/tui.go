@@ -135,11 +135,13 @@ func (s colorSelect) getColor(selected bool) Color {
 	return s.NormalFg
 }
 
+// texter is used to let an Element display customizable text.
 type texter struct {
 	Text string
 	X, Y int
 }
 
+// drawText displays the text of the texter on screen.
 func (t texter) drawText(color Color) {
 	for i, ch := range t.Text {
 		TermDraw(t.X+i, t.Y, Glyph{ch, color})
