@@ -147,3 +147,17 @@ func Round(x float64, ndigits int) float64 {
 	shift := math.Pow(10, float64(ndigits))
 	return math.Copysign(math.Floor(math.Abs(x)*shift+.5)/shift, x)
 }
+
+// Error represents custom errors arising from the stones core. The main use
+// case is allowing callers to distinguish between built-in errors and error
+// values originating from stones.
+type Error string
+
+// Error
+func (e Error) Error() string {
+	return string(e)
+}
+
+var (
+	ErrInvalidDimensions = Error("grid: invalid dimensions")
+)
