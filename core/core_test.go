@@ -17,8 +17,7 @@ func TestMax(t *testing.T) {
 		{4, -4, 4},
 	}
 	for _, c := range cases {
-		actual := Max(c.x, c.y)
-		if c.expected != actual {
+		if actual := Max(c.x, c.y); c.expected != actual {
 			t.Errorf("Max(%d, %d) = %d != %d", c.x, c.y, actual, c.expected)
 		}
 	}
@@ -37,8 +36,7 @@ func TestMin(t *testing.T) {
 		{4, -4, -4},
 	}
 	for _, c := range cases {
-		actual := Min(c.x, c.y)
-		if c.expected != actual {
+		if actual := Min(c.x, c.y); c.expected != actual {
 			t.Errorf("Min(%d, %d) = %d != %d", c.x, c.y, actual, c.expected)
 		}
 	}
@@ -72,8 +70,7 @@ func TestMod(t *testing.T) {
 		{10, 5, 0},
 	}
 	for _, c := range cases {
-		actual := Mod(c.x, c.y)
-		if c.expected != actual {
+		if actual := Mod(c.x, c.y); c.expected != actual {
 			t.Errorf("Mod(%d, %d) = %d != %d", c.x, c.y, actual, c.expected)
 		}
 	}
@@ -93,8 +90,7 @@ func TestAbs(t *testing.T) {
 		{-3, 3},
 	}
 	for _, c := range cases {
-		actual := Abs(c.x)
-		if c.expected != actual {
+		if actual := Abs(c.x); c.expected != actual {
 			t.Errorf("Abs(%d) = %d != %d", c.x, actual, c.expected)
 		}
 	}
@@ -120,8 +116,7 @@ func TestClamp(t *testing.T) {
 		{0, 11, 10, 10},
 	}
 	for _, c := range cases {
-		actual := Clamp(c.min, c.val, c.max)
-		if c.expected != actual {
+		if actual := Clamp(c.min, c.val, c.max); c.expected != actual {
 			t.Errorf("Clamp(%d, %d, %d) = %d != %d", c.min, c.val, c.max, actual, c.expected)
 		}
 	}
@@ -143,8 +138,7 @@ func TestInBounds(t *testing.T) {
 		{40, 12, 80, 24, true},
 	}
 	for _, c := range cases {
-		actual := InBounds(c.x, c.y, c.w, c.h)
-		if c.expected != actual {
+		if actual := InBounds(c.x, c.y, c.w, c.h); c.expected != actual {
 			t.Errorf("InBounds(%d, %d, %d, %d) = %d != %d", c.x, c.y, c.w, c.h, actual, c.expected)
 		}
 	}
@@ -188,8 +182,7 @@ func TestRound(t *testing.T) {
 		{-.630, 2, -.63},
 	}
 	for _, c := range cases {
-		actual := Round(c.x, c.n)
-		if c.expected != actual {
+		if actual := Round(c.x, c.n); c.expected != actual {
 			t.Errorf("Round(%f, %d) = %f != %f", c.x, c.n, actual, c.expected)
 		}
 	}

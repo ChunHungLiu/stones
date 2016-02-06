@@ -107,6 +107,7 @@ func getReflexive(noun interface{}) string {
 	if name == "you" {
 		return "yourself"
 	}
+	// TODO handle gender for uniques
 	return "itself"
 }
 
