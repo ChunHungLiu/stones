@@ -54,19 +54,6 @@ type Offset struct {
 	X, Y int
 }
 
-// KeyMap stores default directional Key values. This dictionary can be edited
-// to affect any core functions which require knowledge of directional keys.
-var KeyMap = map[Key]Offset{
-	'h': {-1, 0}, '4': {-1, 0},
-	'l': {1, 0}, '6': {1, 0},
-	'k': {0, -1}, '8': {0, -1},
-	'j': {0, 1}, '2': {0, 1},
-	'u': {1, -1}, '9': {1, -1},
-	'y': {-1, -1}, '7': {-1, -1},
-	'n': {1, 1}, '3': {1, 1},
-	'b': {-1, 1}, '1': {-1, 1},
-}
-
 // Sub returns the result of subtracting another Offset from this one.
 func (o Offset) Sub(a Offset) Offset {
 	return Offset{o.X - a.X, o.Y - a.Y}
@@ -90,6 +77,19 @@ func (o Offset) Euclidean() float64 {
 // Chebyshev returns the L_inf distance off the Offset.
 func (o Offset) Chebyshev() int {
 	return Max(Abs(o.X), Abs(o.Y))
+}
+
+// KeyMap stores default directional Key values. This dictionary can be edited
+// to affect any core functions which require knowledge of directional keys.
+var KeyMap = map[Key]Offset{
+	'h': {-1, 0}, '4': {-1, 0},
+	'l': {1, 0}, '6': {1, 0},
+	'k': {0, -1}, '8': {0, -1},
+	'j': {0, 1}, '2': {0, 1},
+	'u': {1, -1}, '9': {1, -1},
+	'y': {-1, -1}, '7': {-1, -1},
+	'n': {1, 1}, '3': {1, 1},
+	'b': {-1, 1}, '1': {-1, 1},
 }
 
 // Max returns the maximum of x and y.
