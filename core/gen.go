@@ -12,6 +12,8 @@ type FloatGridWriter interface {
 	Write(x, y int, f float64)
 }
 
+type HeightmapWriteMode uint8
+
 // Heightmap is a grid of float64, with methods for manipulating the heightmap.
 type Heightmap struct {
 	cols, rows int
@@ -38,7 +40,7 @@ func NewHeightmap(cols, rows int) *Heightmap {
 // the other methods.
 func (h *Heightmap) Generate() {
 	h.Reset()
-	h.Raise()
+	h.RaiseEllipses()
 	h.Smooth()
 	h.Equalize()
 	h.Normalize()
@@ -53,34 +55,39 @@ func (h *Heightmap) Reset() {
 	}
 }
 
-// Raise will randomly raise ellipses on the map, thereby creating terrain like
-// values. The number of ellipses is controlled with NumEllipses. The size of
-// the ellipses is controlled with RadiusX and RadiusY. The ellipses will wrap
-// around the x-axis if WrapX is true.
-func (h *Heightmap) Raise() {
-	// Precompute the radii squares for use in ellipse equation.
+// RaiseEllipse raises an ellipse shape (determined by RadiusX and RadiusY)
+// at the given location. The ellipse will wrap around the x-axis if WrapX is
+// true. No out of bounds locations will be raised.
+func (h *Heightmap) RaiseEllipse(cx, cy int) {
 	rx2, ry2 := float64(h.RadiusX*h.RadiusX), float64(h.RadiusY*h.RadiusY)
+	for dx := -h.RadiusX; dx <= h.RadiusX; dx++ {
+		for dy := -h.RadiusY; dy <= h.RadiusY; dy++ {
+			// if outside the ellipse, skip the point
+			if float64(dx*dx)/rx2+float64(dy*dy)/ry2 >= 1 {
+				continue
+			}
 
+			// raise the optionally wrapped point if it is in bounds
+			x, y := cx+dx, cy+dy
+			if h.WrapX {
+				x = Mod(x, h.cols)
+			}
+			if InBounds(x, y, h.cols, h.rows) {
+				h.buf[x][y]++
+			}
+		}
+	}
+}
+
+// RaiseEllipses will randomly raise ellipses on the map, thereby creating
+// terrain like height values. The number of ellipses is controlled with
+// NumEllipses. The size of the ellipses is controlled with RadiusX and
+// RadiusY. The ellipses will wrap around the x-axis if WrapX is true.
+func (h *Heightmap) RaiseEllipses() {
 	// Raise NumEllipses randomly placed ellipses.
 	for i := 0; i < h.NumEllipses; i++ {
 		cx, cy := RandInt(h.cols), RandInt(h.rows)
-		for dx := -h.RadiusX; dx <= h.RadiusX; dx++ {
-			for dy := -h.RadiusY; dy <= h.RadiusY; dy++ {
-				// if outside the ellipse, skip the point
-				if float64(dx*dx)/rx2+float64(dy*dy)/ry2 >= 1 {
-					continue
-				}
-
-				// raise the optionally wrapped point if it is in bounds
-				x, y := cx+dx, cy+dy
-				if h.WrapX {
-					x = Mod(x, h.cols)
-				}
-				if InBounds(x, y, h.cols, h.rows) {
-					h.buf[x][y]++
-				}
-			}
-		}
+		h.RaiseEllipse(cx, cy)
 	}
 }
 
@@ -145,8 +152,8 @@ func (h *Heightmap) Normalize() {
 }
 
 // Apply writes the current state of the heightmap to a FloatGridWriter.
-// If the dimensions of the Grid and the Heightmap do not match, an error is
-// returned and nothing is written.
+// If the dimensions of the Grid and the Heightmap do not match then
+// ErrInvalidDimensions is returned and nothing is written.
 func (h *Heightmap) Apply(g FloatGridWriter) error {
 	if g.Cols() != h.cols || g.Rows() != h.rows {
 		return ErrInvalidDimensions
@@ -159,6 +166,54 @@ func (h *Heightmap) Apply(g FloatGridWriter) error {
 	}
 
 	return nil
+}
+
+// Transform applies a transformation function to each value of the Heightmap.
+func (h *Heightmap) Transform(f func(float64) float64) {
+	for x := 0; x < h.cols; x++ {
+		for y := 0; y < h.rows; y++ {
+			h.buf[x][y] = f(h.buf[x][y])
+		}
+	}
+}
+
+// Combine applies a transformation function to each value of the Heightmap.
+// The transform function takes two float64 as input; the first comes from this
+// Heightmap, and the second from the other Heightmap passed to Combine.
+// If the dimensions of the two Heightmaps do not match, then
+// ErrInvalidDimensions is returned and nothing is written.
+func (h *Heightmap) Combine(f func(float64, float64) float64, o *Heightmap) error {
+	if h.cols != o.cols || h.rows != o.rows {
+		return ErrInvalidDimensions
+	}
+
+	for x := 0; x < h.cols; x++ {
+		for y := 0; y < h.rows; y++ {
+			h.buf[x][y] = f(h.buf[x][y], o.buf[x][y])
+		}
+	}
+
+	return nil
+}
+
+// Cols returns the number of columns in the Heightmap.
+func (h *Heightmap) Cols() int {
+	return h.cols
+}
+
+// Rows returns the number of rows in the Heightmap.
+func (h *Heightmap) Rows() int {
+	return h.rows
+}
+
+// Write sets the value of a specific cell of the Heightmap.
+func (h *Heightmap) Write(x, y int, f float64) {
+	h.buf[x][y] = f
+}
+
+// Read gets the value of a specific cell of the Heightmap.
+func (h *Heightmap) Read(x, y int) float64 {
+	return h.buf[x][y]
 }
 
 // GenHeightmap applies the default Heightmap generator to a FloatGridWriter
