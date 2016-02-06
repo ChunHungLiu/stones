@@ -16,6 +16,7 @@ type Skin struct {
 	Logger  *core.LogWidget
 	Expired bool
 	View    *core.CameraWidget
+	Target  *core.Tile
 }
 
 // Handle implements Entity for Skin.
@@ -28,9 +29,17 @@ func (e *Skin) Handle(v core.Event) {
 		if delta, ok := core.KeyMap[key]; ok {
 			e.Pos.Handle(&core.MoveEntity{delta})
 		} else if key == 't' {
-			core.Aim(e, e, "t")
+			if target, ok := core.Aim(e, e, "t"); ok {
+				e.Target = target
+			}
 		} else if key == core.KeyEsc {
 			e.Expired = true
+		} else if key == 'T' {
+			if core.LoS(e.Pos, e.Target) {
+				e.Face.Fg = core.ColorGreen
+			} else {
+				e.Face.Fg = core.ColorRed
+			}
 		}
 	case *core.UpdatePos:
 		e.Pos = v.Pos

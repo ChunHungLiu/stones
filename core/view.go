@@ -174,7 +174,8 @@ func wallfix(fov map[Offset]*Tile, radius int) {
 var reverseTableCache = make(map[int]map[Offset]Offset)
 
 // Trace computes a line of Offset from the origin to the goal Offset.
-// The line is simply computed, without reguard to line of sight.
+// The line is computed using the same heuristic as FoV, although it is
+// computed without reguard to line of sight.
 func Trace(goal Offset) []Offset {
 	// setup book keeping
 	table := getReverseTable(goal)
@@ -193,6 +194,24 @@ func Trace(goal Offset) []Offset {
 
 	// return path
 	return path
+}
+
+// LoS returns true if the line from origin to goal computed by Trace does not
+// contain an impassible Tile. The line is computed using the same heuristic as
+// FoV, so if LoS returns true, then the goal tile would also be included in
+// the computed field of view (assuming large enough radius).
+func LoS(origin, goal *Tile) bool {
+	curr := goal.Offset.Sub(origin.Offset)
+	table := getReverseTable(curr)
+	for goal != origin {
+		if !goal.Pass {
+			return false
+		}
+		next := table[curr]
+		goal = goal.Adjacent[next.Sub(curr)]
+		curr = next
+	}
+	return true
 }
 
 // getReverseTable gets a FoV table and reverses it for LoS computations.
@@ -222,5 +241,3 @@ func computeReverseTable(radius int) map[Offset]Offset {
 	}
 	return reverse
 }
-
-// TODO Add LoS using Trace

@@ -12,22 +12,23 @@ func main() {
 	cols, rows := 20, 10
 	tiles := core.GenStub(cols, rows)
 
-	hero := habilis.Skin{"you", core.Glyph{'@', core.ColorWhite}, &tiles[10][5], nil, false, nil}
+	hero := habilis.Skin{
+		Name: "you",
+		Face: core.Glyph{'@', core.ColorWhite},
+		Pos:  &tiles[10][5],
+	}
 	tiles[10][5].Occupant = &hero
 
-	goblin := habilis.Skin{"goblin", core.Glyph{'g', core.ColorYellow}, &tiles[5][5], nil, false, nil}
+	goblin := habilis.Skin{
+		Name: "goblin",
+		Face: core.Glyph{'g', core.ColorYellow},
+		Pos:  &tiles[5][5],
+	}
 	tiles[5][5].Occupant = &goblin
 
 	log := core.NewLogWidget(0, 11, 80, 10)
 	view := core.NewCameraWidget(&hero, 0, 0, 11, 11)
-	bar := core.NewPercentBarWidget(func() float64 {
-		return .995
-	}, 0, 21, 11, 11)
-	bar.Vertical = false
-	bar.Fill = core.Glyph{'*', core.ColorRed}
-	bar.Invert = false
-	bar.RoundDigits = 4
-	screen := core.Screen{log, view, bar}
+	screen := core.Screen{log, view}
 	hero.View = view
 
 	hero.Logger = log
