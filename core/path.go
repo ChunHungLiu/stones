@@ -102,7 +102,7 @@ func (q *tilequeue) Pop() interface{} {
 // using the given heuristic and cost. If the heuristic is admissible, meaning
 // it never underestimates the final path cost, then the resulting path will be
 // optimal with respect to cost.
-func GraphSearch(origin, goal *Tile, heuristic, cost DistFn) []*Tile {
+func GraphSearch(origin, goal *Tile, cost, heuristic DistFn) []*Tile {
 	scores := newscorer(origin, goal, heuristic)
 	frontier := &tilequeue{[]*Tile{origin}, scores}
 	closed := make(map[*Tile]struct{})
@@ -145,6 +145,13 @@ func GraphSearch(origin, goal *Tile, heuristic, cost DistFn) []*Tile {
 
 	// if we exhaust the frontier, and didn't find the goal, there is no path
 	return nil
+}
+
+// Creates a function which calls GraphSearch with the given DistFn.
+func CreateGraphSearch(cost, heuristic DistFn) func(*Tile, *Tile) []*Tile {
+	return func(a, b *Tile) []*Tile {
+		return GraphSearch(a, b, cost, heuristic)
+	}
 }
 
 // multiplying heuristic values by this constant should still lead to an
