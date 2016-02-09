@@ -9,7 +9,6 @@ type StrGrid []string
 
 func SearchCase(g StrGrid) (origin, goal *Tile, path map[*Tile]struct{}) {
 	cols, rows := len(g[0]), len(g)
-
 	tiles := make([][]Tile, cols)
 	for x := 0; x < cols; x++ {
 		tiles[x] = make([]Tile, rows)
@@ -135,7 +134,9 @@ func TestAStarPath(t *testing.T) {
 			"#x###...#.#",
 			"#x###.#.#.#",
 			"#x###.#.#.#",
-			"#.xxx@#...#",
+			"#x###.#.#.#",
+			"#x###@#.#.#",
+			"#.xxx.#...#",
 			"###########",
 		},
 	}
