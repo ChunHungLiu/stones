@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func FieldCase(g StrGrid) (origin *Tile, weights map[*Tile]int) {
+func FieldCase(g StrGrid) (goals []*Tile, weights map[*Tile]int) {
 	cols, rows := len(g[0]), len(g)
 	tiles := make([][]Tile, cols)
 	for x := 0; x < cols; x++ {
@@ -18,7 +18,7 @@ func FieldCase(g StrGrid) (origin *Tile, weights map[*Tile]int) {
 		}
 	}
 
-	origin, weights = nil, make(map[*Tile]int)
+	goals, weights = make([]*Tile, 0), make(map[*Tile]int)
 
 	link := func(x, y, dx, dy int) {
 		nx, ny := x+dx, y+dy
@@ -44,7 +44,7 @@ func FieldCase(g StrGrid) (origin *Tile, weights map[*Tile]int) {
 			case '#':
 				tiles[x][y].Pass = false
 			case '@':
-				origin = &tiles[x][y]
+				goals = append(goals, &tiles[x][y])
 				weights[&tiles[x][y]] = 0
 			default:
 				if weight, err := strconv.Atoi(string(c)); err == nil {
@@ -54,7 +54,7 @@ func FieldCase(g StrGrid) (origin *Tile, weights map[*Tile]int) {
 		}
 	}
 
-	return origin, weights
+	return goals, weights
 }
 
 func TestAttractiveField(t *testing.T) {
@@ -85,18 +85,40 @@ func TestAttractiveField(t *testing.T) {
 		}, {
 			StrGrid{
 				"########",
-				"#...333#",
+				"#000333#",
 				"#####23#",
 				"#21@123#",
 				"#211####",
-				"#22223.#",
+				"#222230#",
+				"########",
+			}, 3,
+		}, {
+			StrGrid{
+				"#############",
+				"#@1234555555#",
+				"#11234444444#",
+				"#22234333333#",
+				"#33334322222#",
+				"#44444321112#",
+				"#55554321@12#",
+				"#66654321112#",
+				"#############",
+			}, 10,
+		}, {
+			StrGrid{
+				"########",
+				"#@12300#",
+				"#####00#",
+				"#000000#",
+				"#003####",
+				"#00321@#",
 				"########",
 			}, 3,
 		},
 	}
 	for i, c := range cases {
-		origin, weights := FieldCase(c.g)
-		actual := AttractiveField(c.r, origin)
+		goals, weights := FieldCase(c.g)
+		actual := AttractiveField(c.r, goals...)
 		for tile, weight := range weights {
 			off := actual.Follow(tile)
 			adj := tile.Adjacent[off]

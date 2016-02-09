@@ -27,10 +27,14 @@ func (f *sparseField) Follow(t *Tile) Offset {
 }
 
 // AttractiveField computes a Field which pulls towards the goal Tile.
-func AttractiveField(radius int, goal *Tile) Field {
+func AttractiveField(radius int, goals ...*Tile) Field {
 	// setup Djkstra's algorithm bookkeeping
-	weights := map[*Tile]float64{goal: float64(-radius)}
-	queue := []*Tile{goal}
+	weights := make(map[*Tile]float64)
+	queue := make([]*Tile, len(goals))
+	for i, tile := range goals {
+		weights[tile] = float64(-radius)
+		queue[i] = tile
+	}
 
 	// run Djkstra's algorithm to compute attractive weights from the goal
 	for len(queue) > 0 {
