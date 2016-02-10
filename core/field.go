@@ -1,5 +1,9 @@
 package core
 
+import (
+	"math"
+)
+
 // Field is discrete potential field (or Dijkstra map) used for navigation.
 type Field interface {
 	Follow(*Tile) Offset
@@ -14,26 +18,28 @@ type sparseField struct {
 // neighboring tile which has a lower weight. Goal weights are negative
 // so that the default value of 0 is neutral.
 func (f *sparseField) Follow(t *Tile) Offset {
-	bestWeight, bestOffset := f.weights[t], Offset{}
+	minWeight, minOffset := f.weights[t], Offset{}
 
 	for offset, adj := range t.Adjacent {
-		if weight := f.weights[adj]; weight < bestWeight {
-			bestWeight = weight
-			bestOffset = offset
+		if weight := f.weights[adj]; weight < minWeight {
+			minWeight = weight
+			minOffset = offset
 		}
 	}
 
-	return bestOffset
+	return minOffset
 }
 
-// AttractiveField computes a Field which pulls towards the goal Tile.
-func AttractiveField(radius int, goals ...*Tile) Field {
+// computeAttractWeights computes the weights of a sparsefield which pull
+// towards the given goals. The edge weigts will be 0, with the goals
+// having a weight of -radius.
+func computeAttractWeights(radius int, goals []*Tile) map[*Tile]float64 {
 	// setup Djkstra's algorithm bookkeeping
 	weights := make(map[*Tile]float64)
 	queue := make([]*Tile, len(goals))
-	for i, tile := range goals {
-		weights[tile] = float64(-radius)
-		queue[i] = tile
+	for i, goal := range goals {
+		weights[goal] = float64(-radius)
+		queue[i] = goal
 	}
 
 	// run Djkstra's algorithm to compute attractive weights from the goal
@@ -57,8 +63,57 @@ func AttractiveField(radius int, goals ...*Tile) Field {
 		}
 	}
 
+	return weights
+}
+
+// AttractiveField computes a Field which pulls towards the goal Tile.
+func AttractiveField(radius int, goals ...*Tile) Field {
+	return &sparseField{computeAttractWeights(radius, goals)}
+}
+
+// ReplusiveField creates a Field which pulls towards the outermost edge of the
+// field with the given ungoals as the sources. This is *not* the same as
+// negating the weights of an attractive field, as the path towards the edge
+// of the field may require a step towards an ungoal.
+func ReplusiveField(radius int, ungoals ...*Tile) Field {
+	attractWeights := computeAttractWeights(radius, ungoals)
+
+	// compute the weight of the edge of the attractive field
+	edgeWeight := math.Inf(-1)
+	for _, weight := range attractWeights {
+		edgeWeight = math.Max(edgeWeight, weight)
+	}
+
+	// create bookkeeping for djiksta's algorithm again
+	weights := make(map[*Tile]float64)
+	queue := make([]*Tile, 0)
+	for tile, weight := range attractWeights {
+		if weight == edgeWeight {
+			weights[tile] = 0
+			queue = append(queue, tile)
+		}
+	}
+
+	// perform djikstra algorith, with the restriction that we stay in the
+	// bounds of the original attractive field.
+	for len(queue) > 0 {
+		// pop the next Tile off the queue
+		curr := queue[0]
+		queue = queue[1:]
+
+		cost := weights[curr] + 1
+		for _, adj := range curr.Adjacent {
+			_, seen := weights[adj]
+			_, keep := attractWeights[adj]
+			// only consider unseen nodes which are in the attractive field.
+			if !seen && keep {
+				weights[adj] = cost
+				queue = append(queue, adj)
+			}
+		}
+	}
+
 	return &sparseField{weights}
 }
 
-// TODO RepulsiveField
 // TODO RandomField
