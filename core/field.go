@@ -116,4 +116,30 @@ func ReplusiveField(radius int, ungoals ...*Tile) Field {
 	return &sparseField{weights}
 }
 
-// TODO RandomField
+// funcField is a Filed which is composed of only a single function call.
+type funcField func(*Tile) Offset
+
+// Follow simply calls the underlying field function.
+func (f funcField) Follow(t *Tile) Offset {
+	return f(t)
+}
+
+// randField is the underlying function for RandomField.
+func randField(t *Tile) Offset {
+	candidates := make([]Offset, 0, len(t.Adjacent))
+	for offset, adj := range t.Adjacent {
+		if adj.Pass {
+			candidates = append(candidates, offset)
+		}
+	}
+	if len(candidates) == 0 {
+		return Offset{}
+	}
+	return candidates[RandInt(len(candidates))]
+}
+
+// RandomField is a Field which generates random Offsets. The resulting Offset
+// will always corespond to an adjacent Tile which is passable.
+func RandomField() Field {
+	return funcField(randField)
+}

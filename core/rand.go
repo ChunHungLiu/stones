@@ -36,9 +36,14 @@ func RandRange(min, max int) int {
 	return RandInt(max-min+1) + min
 }
 
-// RandCoord returns two ints in [0, cols) and [0, rows) respectively.
-func RandCoord(cols, rows int) (x, y int) {
-	return RandInt(cols), RandInt(rows)
+// RandOffset returns an Offset within the given bounds.
+func RandOffset(cols, rows int) Offset {
+	return Offset{RandInt(cols), RandInt(rows)}
+}
+
+// RandDelta returns an Offset with each value in [-1, 1].
+func RandDelta() Offset {
+	return Offset{RandRange(-1, 1), RandRange(-1, 1)}
 }
 
 // RolldY returns the result of rolling a y-sided die.
