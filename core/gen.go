@@ -12,8 +12,6 @@ type FloatGridWriter interface {
 	Write(x, y int, f float64)
 }
 
-type HeightmapWriteMode uint8
-
 // Heightmap is a grid of float64, with methods for manipulating the heightmap.
 type Heightmap struct {
 	cols, rows int
