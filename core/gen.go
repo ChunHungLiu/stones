@@ -56,7 +56,7 @@ func (h *Heightmap) Reset() {
 // RaiseEllipse raises an ellipse shape (determined by RadiusX and RadiusY)
 // at the given location. The ellipse will wrap around the x-axis if WrapX is
 // true. No out of bounds locations will be raised.
-func (h *Heightmap) RaiseEllipse(cx, cy int) {
+func (h *Heightmap) RaiseEllipse(center Offset) {
 	rx2, ry2 := float64(h.RadiusX*h.RadiusX), float64(h.RadiusY*h.RadiusY)
 	for dx := -h.RadiusX; dx <= h.RadiusX; dx++ {
 		for dy := -h.RadiusY; dy <= h.RadiusY; dy++ {
@@ -66,7 +66,7 @@ func (h *Heightmap) RaiseEllipse(cx, cy int) {
 			}
 
 			// raise the optionally wrapped point if it is in bounds
-			x, y := cx+dx, cy+dy
+			x, y := center.X+dx, center.Y+dy
 			if h.WrapX {
 				x = Mod(x, h.cols)
 			}
@@ -84,8 +84,7 @@ func (h *Heightmap) RaiseEllipse(cx, cy int) {
 func (h *Heightmap) RaiseEllipses() {
 	// Raise NumEllipses randomly placed ellipses.
 	for i := 0; i < h.NumEllipses; i++ {
-		cx, cy := RandInt(h.cols), RandInt(h.rows)
-		h.RaiseEllipse(cx, cy)
+		h.RaiseEllipse(RandOffset(h.cols, h.rows))
 	}
 }
 
