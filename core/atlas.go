@@ -264,5 +264,5 @@ func GenStub(cols, rows int) [][]Tile {
 	return tiles
 }
 
-// TODO Add cavern
-// TODO Add scatter
+// TODO Add temperature map based on latitude and elevation
+// TODO Add precipitation map based on latitude and elevation
