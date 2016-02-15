@@ -135,7 +135,7 @@ func randField(t *Tile) Offset {
 	if len(candidates) == 0 {
 		return Offset{}
 	}
-	return candidates[RandInt(len(candidates))]
+	return candidates[RandIntn(len(candidates))]
 }
 
 // RandomField is a Field which generates random Offsets. The resulting Offset
