@@ -6,6 +6,26 @@ import (
 	"unicode"
 )
 
+type FieldCase struct {
+	Name      string
+	Grid      StrGrid
+	Radius    int
+	ConvertFn func(StrGrid) ([]*Tile, map[*Tile]int)
+	FieldFn   func(int, ...*Tile) Field
+}
+
+func (c FieldCase) Run(t *testing.T, casenum int) {
+	goals, weights := c.ConvertFn(c.Grid)
+	actual := c.FieldFn(c.Radius, goals...)
+	for tile, weight := range weights {
+		off := actual.Follow(tile)
+		adj := tile.Adjacent[off]
+		if adjweight := weights[adj]; adjweight > weight || (adjweight == weight && weight != 0) {
+			t.Errorf("%s failed case %d (stepped from %d to %d)", c.Name, casenum, adjweight, weight)
+		}
+	}
+}
+
 func AttractiveFieldCase(g StrGrid) (goals []*Tile, weights map[*Tile]int) {
 	goals, weights = make([]*Tile, 0), make(map[*Tile]int)
 	callback := func(t *Tile, c byte) {
@@ -86,15 +106,7 @@ func TestAttractiveField(t *testing.T) {
 		},
 	}
 	for i, c := range cases {
-		goals, weights := AttractiveFieldCase(c.g)
-		actual := AttractiveField(c.r, goals...)
-		for tile, weight := range weights {
-			off := actual.Follow(tile)
-			adj := tile.Adjacent[off]
-			if adjweight := weights[adj]; adjweight > weight || (adjweight == weight && weight != 0) {
-				t.Errorf("AttractiveField failed case %d", i)
-			}
-		}
+		FieldCase{"AttractiveField", c.g, c.r, AttractiveFieldCase, AttractiveField}.Run(t, i)
 	}
 }
 
@@ -169,16 +181,6 @@ func TestRepusliveField(t *testing.T) {
 		},
 	}
 	for i, c := range cases {
-		goals, weights := ReplusiveFieldCase(c.g)
-		actual := ReplusiveField(c.r, goals...)
-		for tile, weight := range weights {
-			off := actual.Follow(tile)
-			adj := tile.Adjacent[off]
-			if adjweight := weights[adj]; adjweight > weight || (adjweight == weight && weight != 0) {
-				t.Errorf("ReplusiveField failed case %d", i)
-			}
-		}
+		FieldCase{"ReplusiveField", c.g, c.r, ReplusiveFieldCase, ReplusiveField}.Run(t, i)
 	}
 }
-
-// TODO Test runs are close to copied
