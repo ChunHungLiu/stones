@@ -161,9 +161,9 @@ func TestRepusliveField(t *testing.T) {
 				"########",
 				"#000aaa#",
 				"#####ba#",
-				"#bcDcba#",
-				"#bcc####",
-				"#bbbba0#",
+				"#edDcba#",
+				"#edc####",
+				"#edcba0#",
 				"########",
 			}, 3,
 		}, {
