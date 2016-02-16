@@ -147,8 +147,8 @@ func GraphSearch(origin, goal *Tile, cost, heuristic DistFn) []*Tile {
 	return nil
 }
 
-// Creates a function which calls GraphSearch with the given DistFn.
-func CreateGraphSearch(cost, heuristic DistFn) func(*Tile, *Tile) []*Tile {
+// NewGraphSearch creates a GraphSearch function with the given DistFns.
+func NewGraphSearch(cost, heuristic DistFn) func(*Tile, *Tile) []*Tile {
 	return func(a, b *Tile) []*Tile {
 		return GraphSearch(a, b, cost, heuristic)
 	}
