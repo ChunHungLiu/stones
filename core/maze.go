@@ -1,9 +1,5 @@
 package core
 
-import (
-	"fmt"
-)
-
 type Mazenode struct {
 	Pos   Offset
 	Edges map[Offset]*Mazenode
@@ -29,22 +25,23 @@ func NewPerfect(n int) Abstractmaze {
 
 		candidates := make([]Offset, 0, 4)
 		for _, step := range orthogonal {
-			adj := curr.Pos.Add(step)
-			if _, seen := maze[adj]; !seen {
-				candidates = append(candidates, adj)
+			if _, seen := maze[curr.Pos.Add(step)]; !seen {
+				candidates = append(candidates, step)
 			}
 		}
-		fmt.Println(curr.Pos, candidates)
 
 		if len(candidates) == 0 {
 			frontier = frontier[1:]
 		} else {
-			adj := candidates[RandIntn(len(candidates))]
-			// TODO clean up the edge insertion
-			maze[adj] = &Mazenode{adj, make(map[Offset]*Mazenode)}
-			maze[adj].Edges[curr.Pos.Sub(adj)] = curr
-			curr.Edges[adj.Sub(curr.Pos)] = maze[adj]
-			frontier = append(frontier, maze[adj])
+			step := candidates[RandIntn(len(candidates))]
+			adjpos := curr.Pos.Add(step)
+			adjnode := &Mazenode{adjpos, make(map[Offset]*Mazenode)}
+
+			maze[adjpos] = adjnode
+			curr.Edges[step] = adjnode
+			adjnode.Edges[step.Neg()] = curr
+
+			frontier = append(frontier, adjnode)
 		}
 	}
 

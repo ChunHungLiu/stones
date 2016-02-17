@@ -64,6 +64,11 @@ func (o Offset) Add(a Offset) Offset {
 	return Offset{o.X + a.X, o.Y + a.Y}
 }
 
+// Neg returns the result of negating the Offset.
+func (o Offset) Neg() Offset {
+	return Offset{-o.X, -o.Y}
+}
+
 // Manhattan returns the L_1 distance off the Offset.
 func (o Offset) Manhattan() int {
 	return Abs(o.X) + Abs(o.Y)
