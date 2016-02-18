@@ -169,12 +169,12 @@ func zero(*Tile, *Tile) float64 {
 	return 0
 }
 
-// AStar computes a minimum cost path between two Tiles.
+// AStarPath computes a minimum cost path between two Tiles.
 func AStarPath(origin, goal *Tile) []*Tile {
 	return GraphSearch(origin, goal, euclidean, euclidean)
 }
 
-// Greedy computes a greedy path between two Tiles.
+// GreedyPath computes a greedy path between two Tiles.
 func GreedyPath(origin, goal *Tile) []*Tile {
 	return GraphSearch(origin, goal, zero, euclidean)
 }

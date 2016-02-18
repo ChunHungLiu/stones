@@ -86,7 +86,7 @@ func ReplusiveField(radius int, ungoals ...*Tile) Field {
 
 	// create bookkeeping for djiksta's algorithm again
 	weights := make(map[*Tile]float64)
-	queue := make([]*Tile, 0)
+	var queue []*Tile
 	for tile, weight := range attractWeights {
 		if weight == edgeWeight {
 			weights[tile] = 0

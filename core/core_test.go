@@ -140,7 +140,7 @@ func TestInBounds(t *testing.T) {
 	}
 	for _, c := range cases {
 		if actual := InBounds(c.x, c.y, c.w, c.h); c.expected != actual {
-			t.Errorf("InBounds(%d, %d, %d, %d) = %d != %d", c.x, c.y, c.w, c.h, actual, c.expected)
+			t.Errorf("InBounds(%d, %d, %d, %d) was %t", c.x, c.y, c.w, c.h, actual)
 		}
 	}
 }

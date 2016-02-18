@@ -163,11 +163,12 @@ func Round(x float64, ndigits int) float64 {
 // values originating from stones.
 type Error string
 
-// Error
+// Error returns the value of the custom stones error as a string.
 func (e Error) Error() string {
 	return string(e)
 }
 
+// Custom stones errors to explicitly check against.
 var (
 	ErrInvalidDimensions = Error("grid: invalid dimensions")
 )

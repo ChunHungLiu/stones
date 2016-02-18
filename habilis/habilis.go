@@ -27,7 +27,7 @@ func (e *Skin) Handle(v core.Event) {
 	case *Action:
 		key := core.GetKey()
 		if delta, ok := core.KeyMap[key]; ok {
-			e.Pos.Handle(&core.MoveEntity{delta})
+			e.Pos.Handle(&core.MoveEntity{Delta: delta})
 		} else if key == 't' {
 			if target, ok := core.Aim(e, e, "t"); ok {
 				e.Target = target
