@@ -15,14 +15,14 @@ func main() {
 	hero := habilis.Skin{
 		Name: "you",
 		Face: core.Glyph{'@', core.ColorWhite},
-		Pos:  &tiles[10][5],
+		Pos:  tiles[10][5],
 	}
 	tiles[10][5].Occupant = &hero
 
 	goblin := habilis.Skin{
 		Name: "goblin",
 		Face: core.Glyph{'g', core.ColorYellow},
-		Pos:  &tiles[5][5],
+		Pos:  tiles[5][5],
 	}
 	tiles[5][5].Occupant = &goblin
 
