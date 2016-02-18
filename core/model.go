@@ -32,6 +32,11 @@ type Tile struct {
 	Occupant Entity
 }
 
+// NewTile creates a new Tile with no neighbors or occupant.
+func NewTile(o Offset) *Tile {
+	return &Tile{Glyph{'.', ColorWhite}, true, o, make(map[Offset]*Tile), nil}
+}
+
 // Handle implements Entity for Tile
 func (e *Tile) Handle(v Event) {
 	switch v := v.(type) {
