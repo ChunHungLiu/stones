@@ -69,6 +69,11 @@ func (o Offset) Neg() Offset {
 	return Offset{-o.X, -o.Y}
 }
 
+// Scale returns the result of multiplying the Offset by an integer scalar.
+func (o Offset) Scale(s int) Offset {
+	return Offset{o.X * s, o.Y * s}
+}
+
 // Manhattan returns the L_1 distance off the Offset.
 func (o Offset) Manhattan() int {
 	return Abs(o.X) + Abs(o.Y)
