@@ -27,6 +27,11 @@ func (d Dice) Chance(p float64) bool {
 	return d.Float64() < p
 }
 
+// Coinflip returns true with probability .5
+func (d Dice) Coinflip() bool {
+	return d.Chance(.5)
+}
+
 // Range returns, as an int, a pseudo-random number in [min, max].
 func (d Dice) Range(min, max int) int {
 	return d.Intn(max-min+1) + min
@@ -70,6 +75,11 @@ func RandBool() bool {
 // false if p < 0 or true if p > 1.
 func RandChance(p float64) bool {
 	return globalDice.Chance(p)
+}
+
+// Coinflip returns true with probability .5
+func Coinflip() bool {
+	return globalDice.Chance(.5)
 }
 
 // RandFloat returns, as a float64, a pseudo-random number in [0, 1).
