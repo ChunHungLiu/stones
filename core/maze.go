@@ -78,6 +78,58 @@ func abstractPerfect(n int, runfactor float64) abstractmaze {
 	return maze
 }
 
+func abstractBraid(n int, runfactor float64) abstractmaze {
+	maze := abstractPerfect(n, runfactor)
+
+	// find all the dead ends - nodes which have only one edge
+	deadends := []*mazenode{}
+	for _, node := range maze {
+		if len(node.Edges) == 1 {
+			deadends = append(deadends, node)
+		}
+	}
+
+	// remove all the dead ends by adding edges which connects deadends
+	// some deadends must simply be removed, since they have no adjacent nodes
+	for _, deadend := range deadends {
+		// find the nodes which are both adjacent and unused
+		// there will be exactly one used node (the one leading to the deadend)
+		// so the max number of usable orthogonal candidates is 4-1=3.
+		candidates := make([]Offset, 0, 3)
+		for _, step := range orthogonal {
+			_, used := deadend.Edges[step]
+			_, exists := maze[deadend.Pos.Add(step)]
+			if !used && exists {
+				candidates = append(candidates, step)
+			}
+		}
+
+		if len(candidates) == 0 {
+			// since there was no valid edge to connect, we have a straggler
+			// we just delete nodes until we no longer have a dead end
+			for len(deadend.Edges) == 1 {
+				delete(maze, deadend.Pos)
+				// find the node adjacent to the deadend, and delete its edge
+				// to the deadend. it will either be the next dead end to prune
+				// or will be left alone if it has 2+ edges remaining.
+				for step, adj := range deadend.Edges {
+					delete(adj.Edges, step.Neg())
+					deadend = adj
+					break // there is only one adjacent node to a deadend
+				}
+			}
+		} else {
+			// pick a step, and connect an edge to the neighboring node
+			step := candidates[RandIntn(len(candidates))]
+			neighbor := maze[deadend.Pos.Add(step)]
+			deadend.Edges[step] = neighbor
+			neighbor.Edges[step.Neg()] = deadend
+		}
+	}
+
+	return maze
+}
+
 // tilemap allows for lazy instantiation of Tile
 type tilemap map[Offset]*Tile
 
@@ -93,17 +145,28 @@ func (m tilemap) Get(o Offset) (t *Tile, justcreated bool) {
 }
 
 // PerfectMaze creates a set of Tile which form a perfect maze (meaning the
-// maze has no loops). Note that n specifies the size of the underlying graph
-// describing the maze, which is related to but equal to the number of Tile in
-// the resulting maze. The runfactor specifies how often the algorithm will try
+// maze has no loops). The value of n specifies the size of the underlying graph
+// describing the maze, which is related to but not equal to the number of Tile
+// in the result maze. The runfactor specifies how often the algorithm will try
 // to continue extending a corridor, as opposed to starting a new branch.
 func PerfectMaze(n int, runfactor float64) map[*Tile]struct{} {
-	// create an abstractmaze, which we will convert into a grid of Tile
-	maze := abstractPerfect(n, runfactor)
+	return applyMaze(abstractPerfect(n, runfactor))
+}
+
+// BraidMaze creates a set of Tile which form a braid maze (meaning the maze
+// has no dead ends). The value of n specifies the size of the underlying graph
+// describing the maze, which is related to but not equal to the number of Tile
+// in the result maze. The runfactor specifies how often the algorithm will try
+// to continue extending a corridor, as opposed to starting a new branch.
+func BraidMaze(n int, runfactor float64) map[*Tile]struct{} {
+	return applyMaze(abstractBraid(n, runfactor))
+}
+
+func applyMaze(m abstractmaze) map[*Tile]struct{} {
 	grid := make(tilemap)
 
 	// create a Tile for every node and edge in the maze
-	for off, node := range maze {
+	for off, node := range m {
 		// create the Tile corresponding to the graph node
 		// scale node Offset by 2 so we can fit an edge Tile between node Tiles
 		nodeOff := off.Scale(2)
