@@ -139,8 +139,6 @@ func PerfectMaze(n int, runfactor float64) map[*Tile]struct{} {
 					wall.Face = Glyph{'#', ColorWhite}
 					wall.Pass = false
 				}
-				tile.Adjacent[step] = wall
-				wall.Adjacent[step.Neg()] = tile
 			}
 		}
 	}
