@@ -139,6 +139,18 @@ func PerfectMaze(n int) map[*Tile]struct{} {
 		}
 	}
 
+	// add in the missing tile connections
+	for off, tile := range grid {
+		for _, step := range cardinal {
+			_, link := tile.Adjacent[step]
+			neighbor := grid[off.Add(step)]
+			if !link && neighbor != nil {
+				tile.Adjacent[step] = neighbor
+				neighbor.Adjacent[step.Neg()] = tile
+			}
+		}
+	}
+
 	// convert and return tilemap as a set of tiles
 	tiles := make(map[*Tile]struct{})
 	for _, tile := range grid {

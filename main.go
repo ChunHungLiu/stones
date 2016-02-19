@@ -9,28 +9,27 @@ func main() {
 	core.MustTermInit()
 	defer core.TermDone()
 
-	cols, rows := 20, 10
-	tiles := core.GenStub(cols, rows)
+	tiles := core.PerfectMaze(30, .5)
+	var origin *core.Tile
+	for tile := range tiles {
+		if tile.Pass {
+			origin = tile
+			break
+		}
+	}
 
 	hero := habilis.Skin{
 		Name: "you",
 		Face: core.Glyph{Ch: '@', Fg: core.ColorWhite},
-		Pos:  tiles[10][5],
+		Pos:  origin,
 	}
-	tiles[10][5].Occupant = &hero
-
-	goblin := habilis.Skin{
-		Name: "goblin",
-		Face: core.Glyph{Ch: 'g', Fg: core.ColorYellow},
-		Pos:  tiles[5][5],
-	}
-	tiles[5][5].Occupant = &goblin
+	origin.Occupant = &hero
 
 	log := core.NewLogWidget(0, 11, 80, 10)
 	view := core.NewCameraWidget(&hero, 0, 0, 11, 11)
 	screen := core.Screen{log, view}
-	hero.View = view
 
+	hero.View = view
 	hero.Logger = log
 
 	for !hero.Expired {
