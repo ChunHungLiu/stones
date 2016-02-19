@@ -31,7 +31,7 @@ var (
 
 // abstractPerfect generates an abstractmaze with the given number of nodes.
 // This maze will be perfect, meaning that it has no loops.
-func abstractPerfect(n int) abstractmaze {
+func abstractPerfect(n int, runfactor float64) abstractmaze {
 	// set up bookkeeping for growing tree algorithm
 	start := &mazenode{Offset{}, make(map[Offset]*mazenode)}
 	maze := abstractmaze{Offset{}: start}
@@ -40,7 +40,12 @@ func abstractPerfect(n int) abstractmaze {
 	// our frontier size is unbounded, so stop when we've added enough nodes.
 	for len(maze) < n {
 		// select a node at random, meaning we emulate Prim's algorithm
-		index := RandIntn(len(frontier))
+		var index int
+		if RandChance(runfactor) {
+			index = len(frontier) - 1
+		} else {
+			index = RandIntn(len(frontier))
+		}
 		curr := frontier[index]
 
 		// candidate steps are on edges which lead to unseen node
@@ -90,10 +95,11 @@ func (m tilemap) Get(o Offset) (t *Tile, justcreated bool) {
 // PerfectMaze creates a set of Tile which form a perfect maze (meaning the
 // maze has no loops). Note that n specifies the size of the underlying graph
 // describing the maze, which is related to but equal to the number of Tile in
-// the resulting maze.
-func PerfectMaze(n int) map[*Tile]struct{} {
+// the resulting maze. The runfactor specifies how often the algorithm will try
+// to continue extending a corridor, as opposed to starting a new branch.
+func PerfectMaze(n int, runfactor float64) map[*Tile]struct{} {
 	// create an abstractmaze, which we will convert into a grid of Tile
-	maze := abstractPerfect(n)
+	maze := abstractPerfect(n, runfactor)
 	grid := make(tilemap)
 
 	// create a Tile for every node and edge in the maze
@@ -159,9 +165,7 @@ func PerfectMaze(n int) map[*Tile]struct{} {
 	return tiles
 }
 
-// TODO Add optional weave to mazes
-// TODO Add optional param for choosing between newest and random
-
+// TODO Add optional z-levels to mazes
 // TODO Add braid and half-braid mazes
 // TODO Add dungeon
 // TODO Add caveify
