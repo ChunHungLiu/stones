@@ -78,12 +78,21 @@ func abstractPerfect(n int, runfactor float64) abstractmaze {
 	return maze
 }
 
-func abstractBraid(n int, runfactor float64) abstractmaze {
+// abstractPerfect generates an abstractmaze with the given number of nodes.
+// This maze will be a braid, meaning that it has no deadends.
+func abstractBraid(n int, runfactor, removeChance float64) abstractmaze {
 	maze := abstractPerfect(n, runfactor)
+	removeDeadends(maze, removeChance)
+	return maze
+}
 
+// removeDeadends removes a given percent of deadends from an abstractmaze.
+// Deadends are removed by adding an edge to an unconnected but adjacent node.
+// Deadends which have no unconnected adjacent node are simply removed.
+func removeDeadends(m abstractmaze, removeChance float64) {
 	// find all the dead ends - nodes which have only one edge
 	deadends := []*mazenode{}
-	for _, node := range maze {
+	for _, node := range m {
 		if len(node.Edges) == 1 {
 			deadends = append(deadends, node)
 		}
@@ -92,13 +101,17 @@ func abstractBraid(n int, runfactor float64) abstractmaze {
 	// remove all the dead ends by adding edges which connects deadends
 	// some deadends must simply be removed, since they have no adjacent nodes
 	for _, deadend := range deadends {
+		if !RandChance(removeChance) {
+			continue
+		}
+
 		// find the nodes which are both adjacent and unused
 		// there will be exactly one used node (the one leading to the deadend)
 		// so the max number of usable orthogonal candidates is 4-1=3.
 		candidates := make([]Offset, 0, 3)
 		for _, step := range orthogonal {
 			_, used := deadend.Edges[step]
-			_, exists := maze[deadend.Pos.Add(step)]
+			_, exists := m[deadend.Pos.Add(step)]
 			if !used && exists {
 				candidates = append(candidates, step)
 			}
@@ -108,7 +121,7 @@ func abstractBraid(n int, runfactor float64) abstractmaze {
 			// since there was no valid edge to connect, we have a straggler
 			// we just delete nodes until we no longer have a dead end
 			for len(deadend.Edges) == 1 {
-				delete(maze, deadend.Pos)
+				delete(m, deadend.Pos)
 				// find the node adjacent to the deadend, and delete its edge
 				// to the deadend. it will either be the next dead end to prune
 				// or will be left alone if it has 2+ edges remaining.
@@ -121,13 +134,11 @@ func abstractBraid(n int, runfactor float64) abstractmaze {
 		} else {
 			// pick a step, and connect an edge to the neighboring node
 			step := candidates[RandIntn(len(candidates))]
-			neighbor := maze[deadend.Pos.Add(step)]
+			neighbor := m[deadend.Pos.Add(step)]
 			deadend.Edges[step] = neighbor
 			neighbor.Edges[step.Neg()] = deadend
 		}
 	}
-
-	return maze
 }
 
 // tilemap allows for lazy instantiation of Tile
@@ -159,9 +170,21 @@ func PerfectMaze(n int, runfactor float64) map[*Tile]struct{} {
 // in the result maze. The runfactor specifies how often the algorithm will try
 // to continue extending a corridor, as opposed to starting a new branch.
 func BraidMaze(n int, runfactor float64) map[*Tile]struct{} {
-	return applyMaze(abstractBraid(n, runfactor))
+	return applyMaze(abstractBraid(n, runfactor, 1))
 }
 
+// HalfBraidMaze creates a set of Tile which form a half-braid maze (meaning the
+// maze will have some dead ends and some loops). The value of n specifies the
+// size of the underlying graph describing the maze, which is related to but not
+// equal to the number of Tile in the result maze. The runfactor specifies how
+// often the algorithm will try to continue extending a corridor, as opposed to
+// starting a new branch. The removeChance is the probability of removing a
+// deadend by creating a loop.
+func HalfBraidMaze(n int, runfactor, removeChance float64) map[*Tile]struct{} {
+	return applyMaze(abstractBraid(n, runfactor, removeChance))
+}
+
+// applyMaze converts each node and edge an abstract maze to a single Tile
 func applyMaze(m abstractmaze) map[*Tile]struct{} {
 	grid := make(tilemap)
 
@@ -227,6 +250,6 @@ func applyMaze(m abstractmaze) map[*Tile]struct{} {
 }
 
 // TODO Add optional z-levels to mazes
-// TODO Add braid and half-braid mazes
 // TODO Add dungeon
 // TODO Add caveify
+// TODO Use writer interfaces instead of directly writing Tile
