@@ -6,17 +6,10 @@ import (
 )
 
 func main() {
+	origin := core.HalfBraidMaze(30, .5, .5, .5)
+
 	core.MustTermInit()
 	defer core.TermDone()
-
-	tiles := core.PerfectMaze(30, .5)
-	var origin *core.Tile
-	for tile := range tiles {
-		if tile.Pass {
-			origin = tile
-			break
-		}
-	}
 
 	hero := habilis.Skin{
 		Name: "you",
