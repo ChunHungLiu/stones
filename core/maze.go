@@ -38,11 +38,11 @@ func abstractPerfect(n int, runProb, weaveProb float64) abstractmaze {
 	// set up bookkeeping for growing tree algorithm
 	origin := &mazenode{Offset{}, make(map[Offset]*mazenode)}
 	maze := abstractmaze{origin, map[Offset][]*mazenode{origin.Pos: {origin}}}
-	size := 1
 	frontier := []*mazenode{origin}
+	nodesAdded := 1
 
 	// our frontier size is unbounded, so stop when we've added enough nodes.
-	for size < n {
+	for nodesAdded < n {
 		// select a node at random, meaning we emulate Prim's algorithm
 		var index int
 		if RandChance(runProb) {
@@ -75,7 +75,7 @@ func abstractPerfect(n int, runProb, weaveProb float64) abstractmaze {
 
 			// add the newly created ajacent node to the frontier and inc size
 			frontier = append(frontier, adjnode)
-			size++
+			nodesAdded++
 		} else {
 			// if we have no candidate edges, we'll never expand it
 			frontier = append(frontier[:index], frontier[index+1:]...)
@@ -205,10 +205,15 @@ func applyMaze(m abstractmaze) *Tile {
 	return origin
 }
 
+// createPassTiles returns a set of passable Tiles (given by the origin Tile)
+// corresponding to the nodes and edges of an abstractmaze.
 func createPassTiles(m abstractmaze) *Tile {
+	// graph traversal bookkeeping
 	frontier := []*mazenode{m.Origin}
 	visited := map[*mazenode]*Tile{m.Origin: NewTile(m.Origin.Pos.Scale(2))}
+
 	for len(frontier) != 0 {
+		// pop the next node and grab its corresponding Tile
 		node := frontier[len(frontier)-1]
 		frontier = frontier[:len(frontier)-1]
 		nodeTile := visited[node]
@@ -217,14 +222,21 @@ func createPassTiles(m abstractmaze) *Tile {
 			if _, edgeExists := nodeTile.Adjacent[step]; !edgeExists {
 				negStep := step.Neg()
 
+				// create a Tile corresponding to the edge between node and adj
 				edgeOff := nodeTile.Offset.Add(step)
 				edgeTile := NewTile(edgeOff)
 				nodeTile.Adjacent[step] = edgeTile
 				edgeTile.Adjacent[negStep] = nodeTile
 
+				// connect the edge Tile to a Tile corresponding to adj
 				adjTile, seen := visited[adj]
+				// The edge not existing is nessesary but sufficient for the
+				// adj to have not been seen and created since we could have
+				// seen the adj, but not popped it from the frontier yet. Thus,
+				// this check is needed so we don't create the adj node twice.
 				if !seen {
 					adjTile = NewTile(edgeOff.Add(step))
+					// Since we found a new node, we should enqueue it now
 					visited[adj] = adjTile
 					frontier = append(frontier, adj)
 				}
@@ -237,22 +249,35 @@ func createPassTiles(m abstractmaze) *Tile {
 	return visited[m.Origin]
 }
 
+// isDiag returns true if the Offset is a single diagonal step
+func isDiag(o Offset) bool {
+	return Abs(o.X) == 1 && Abs(o.Y) == 1
+}
+
+// connectDiagonals takes an orthoganlly connected map (given by its origin)
+// and connects tiles which are a single diagonal step.
 func connectDiagonals(origin *Tile) {
+	// graph traversal bookkeeping
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}
+
 	for len(frontier) != 0 {
+		// pop the next Tile to diagonally link
 		curr := frontier[len(frontier)-1]
 		frontier = frontier[:len(frontier)-1]
 
-		for _, step := range orthogonal {
-			if adj, ok := curr.Adjacent[step]; ok {
-				for adjStep, tile := range adj.Adjacent {
-					if diagStep := step.Add(adjStep); diagStep.Chebyshev() == 1 {
-						curr.Adjacent[diagStep] = tile
-						tile.Adjacent[diagStep.Neg()] = curr
+		for _, step1 := range orthogonal {
+			if adj, ok := curr.Adjacent[step1]; ok {
+				// takes two orthognal steps, and links any resulting Tile which
+				// are one diagonal step from curr
+				for step2, tile := range adj.Adjacent {
+					if diag := step1.Add(step2); isDiag(diag) {
+						curr.Adjacent[diag] = tile
+						tile.Adjacent[diag.Neg()] = curr
 					}
 				}
 
+				// enqueue the adjancent Tile if it hasnt already been
 				if _, seen := visited[adj]; !seen {
 					frontier = append(frontier, adj)
 					visited[adj] = struct{}{}
