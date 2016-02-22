@@ -1,9 +1,5 @@
 package core
 
-import (
-	"fmt"
-)
-
 // We use these tables to cheaply approximate FoV, but we cache the tables so
 // we only have to compute them once.
 var tableCache = make(map[int]map[Offset]map[Offset]struct{})
@@ -22,7 +18,6 @@ func FoV(origin *Tile, radius int) map[Offset]*Tile {
 	if !cached {
 		table = computeTable(radius)
 		tableCache[radius] = table
-		fmt.Println(table)
 	}
 
 	fov := map[Offset]*Tile{Offset{0, 0}: origin}
