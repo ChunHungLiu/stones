@@ -287,26 +287,40 @@ func connectDiagonals(origin *Tile) {
 	}
 }
 
+// addWallTiles takes in a maze of passable Tile (given by the origin) and adds
+// wall Tiles to complete the maze. The wall Tiles will be reused whenever
+// possible, and properly connected to allow for FoV to run with wallfix.
 func addWallTiles(origin *Tile) {
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}
+
 	for len(frontier) != 0 {
 		curr := frontier[len(frontier)-1]
 		frontier = frontier[:len(frontier)-1]
 
 		for _, step := range cardinal {
-			if adj, exists := curr.Adjacent[step]; !exists {
+			if adj, exists := curr.Adjacent[step]; exists {
+				if _, seen := visited[adj]; adj.Pass && !seen {
+					frontier = append(frontier, adj)
+					visited[adj] = struct{}{}
+				} else if !adj.Pass {
+					connectWall(adj, curr)
+				}
+			} else {
 				wall := NewTile(curr.Offset.Add(step))
 				wall.Face = Glyph{'#', ColorWhite}
 				wall.Pass = false
 				curr.Adjacent[step] = wall
-			} else if _, seen := visited[adj]; !seen {
-				frontier = append(frontier, adj)
-				visited[adj] = struct{}{}
+				connectWall(wall, curr)
 			}
 		}
 	}
-	// FIXME Connect wall tiles properly so that wallfix can be reenabled
+}
+
+// connectWall connects the wall to all the Tile adjancet to neighbor which are
+// one step (in Chebyshevdistance) away.
+func connectWall(wall, neighbor *Tile) {
+	// XXX implement connectWall
 }
 
 // TODO Add dungeon
