@@ -45,7 +45,7 @@ func FoV(origin *Tile, radius int) map[Offset]*Tile {
 	}
 
 	// fix some artifacts related to standing next to a long wall.
-	//wallfix(fov, radius)
+	wallfix(fov, radius)
 	return fov
 }
 

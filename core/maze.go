@@ -257,6 +257,7 @@ func isDiag(o Offset) bool {
 // connectDiagonals takes an orthoganlly connected map (given by its origin)
 // and connects tiles which are a single diagonal step.
 func connectDiagonals(origin *Tile) {
+	// XXX Potentially redundant with addWallTiles traverse
 	// graph traversal bookkeeping
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}
@@ -320,7 +321,18 @@ func addWallTiles(origin *Tile) {
 // connectWall connects the wall to all the Tile adjancet to neighbor which are
 // one step (in Chebyshevdistance) away.
 func connectWall(wall, neighbor *Tile) {
-	// XXX implement connectWall
+	for _, adj := range neighbor.Adjacent {
+		if adj == wall {
+			continue
+		}
+
+		step := adj.Offset.Sub(wall.Offset)
+		_, used := wall.Adjacent[step]
+		if !used && step.Chebyshev() == 1 {
+			wall.Adjacent[step] = adj
+			adj.Adjacent[step.Neg()] = wall
+		}
+	}
 }
 
 // TODO Add dungeon
