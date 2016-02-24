@@ -200,8 +200,7 @@ func HalfBraidMaze(n int, runProb, weaveProb, loopProb float64) *Tile {
 // The origin Tile of the maze is returned.
 func applyMaze(m abstractmaze) *Tile {
 	origin := createPassTiles(m)
-	connectDiagonals(origin)
-	addWallTiles(origin)
+	connectMaze(origin)
 	return origin
 }
 
@@ -254,44 +253,7 @@ func isDiag(o Offset) bool {
 	return Abs(o.X) == 1 && Abs(o.Y) == 1
 }
 
-// connectDiagonals takes an orthoganlly connected map (given by its origin)
-// and connects tiles which are a single diagonal step.
-func connectDiagonals(origin *Tile) {
-	// XXX Potentially redundant with addWallTiles traverse
-	// graph traversal bookkeeping
-	frontier := []*Tile{origin}
-	visited := map[*Tile]struct{}{origin: {}}
-
-	for len(frontier) != 0 {
-		// pop the next Tile to diagonally link
-		curr := frontier[len(frontier)-1]
-		frontier = frontier[:len(frontier)-1]
-
-		for _, step1 := range orthogonal {
-			if adj, ok := curr.Adjacent[step1]; ok {
-				// takes two orthognal steps, and links any resulting Tile which
-				// are one diagonal step from curr
-				for step2, tile := range adj.Adjacent {
-					if diag := step1.Add(step2); isDiag(diag) {
-						curr.Adjacent[diag] = tile
-						tile.Adjacent[diag.Neg()] = curr
-					}
-				}
-
-				// enqueue the adjancent Tile if it hasnt already been
-				if _, seen := visited[adj]; !seen {
-					frontier = append(frontier, adj)
-					visited[adj] = struct{}{}
-				}
-			}
-		}
-	}
-}
-
-// addWallTiles takes in a maze of passable Tile (given by the origin) and adds
-// wall Tiles to complete the maze. The wall Tiles will be reused whenever
-// possible, and properly connected to allow for FoV to run with wallfix.
-func addWallTiles(origin *Tile) {
+func connectMaze(origin *Tile) {
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}
 
@@ -301,36 +263,43 @@ func addWallTiles(origin *Tile) {
 
 		for _, step := range cardinal {
 			if adj, exists := curr.Adjacent[step]; exists {
-				if _, seen := visited[adj]; adj.Pass && !seen {
+				if _, seen := visited[adj]; !seen && adj.Pass {
 					frontier = append(frontier, adj)
 					visited[adj] = struct{}{}
-				} else if !adj.Pass {
-					connectWall(adj, curr)
 				}
+				connectTile(curr, adj)
 			} else {
-				wall := NewTile(curr.Offset.Add(step))
-				wall.Face = Glyph{'#', ColorWhite}
-				wall.Pass = false
-				curr.Adjacent[step] = wall
-				connectWall(wall, curr)
+				off := curr.Offset.Add(step)
+				tile, ok := findTile(curr, off)
+				if !ok {
+					tile = NewTile(off)
+					tile.Pass = false
+					tile.Face = Glyph{'#', ColorWhite}
+				}
+				curr.Adjacent[step] = tile
+				tile.Adjacent[step.Neg()] = curr
+				connectTile(curr, tile)
 			}
 		}
 	}
 }
 
-// connectWall connects the wall to all the Tile adjancet to neighbor which are
-// one step (in Chebyshevdistance) away.
-func connectWall(wall, neighbor *Tile) {
-	for _, adj := range neighbor.Adjacent {
-		if adj == wall {
-			continue
+func findTile(origin *Tile, dest Offset) (tile *Tile, ok bool) {
+	for _, adj := range origin.Adjacent {
+		adjStep := dest.Sub(adj.Offset)
+		if tile, exists := adj.Adjacent[adjStep]; exists {
+			return tile, true
 		}
+	}
+	return nil, false
+}
 
-		step := adj.Offset.Sub(wall.Offset)
-		_, used := wall.Adjacent[step]
-		if !used && step.Chebyshev() == 1 {
-			wall.Adjacent[step] = adj
-			adj.Adjacent[step.Neg()] = wall
+func connectTile(origin, dest *Tile) {
+	for _, adj := range origin.Adjacent {
+		adjStep := dest.Offset.Sub(adj.Offset)
+		if _, used := adj.Adjacent[adjStep]; !used && adjStep.Chebyshev() == 1 {
+			adj.Adjacent[adjStep] = dest
+			dest.Adjacent[adjStep.Neg()] = adj
 		}
 	}
 }
