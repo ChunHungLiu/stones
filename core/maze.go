@@ -248,11 +248,6 @@ func createPassTiles(m abstractmaze) *Tile {
 	return visited[m.Origin]
 }
 
-// isDiag returns true if the Offset is a single diagonal step
-func isDiag(o Offset) bool {
-	return Abs(o.X) == 1 && Abs(o.Y) == 1
-}
-
 // connectMaze completes the missing connections of a maze by connecting each
 // Tile through its neighbors, and adding walls where needed.
 func connectMaze(origin *Tile) {
@@ -260,9 +255,11 @@ func connectMaze(origin *Tile) {
 	visited := map[*Tile]struct{}{origin: {}}
 
 	for len(frontier) != 0 {
-		curr := frontier[len(frontier)-1]
-		frontier = frontier[:len(frontier)-1]
+		// pop in breadth first fashion
+		curr := frontier[0]
+		frontier = frontier[1:]
 
+		// make sure edge is fully connected
 		for _, step := range cardinal {
 			if adj, exists := curr.Adjacent[step]; exists {
 				if _, seen := visited[adj]; !seen && adj.Pass {
@@ -279,8 +276,12 @@ func connectMaze(origin *Tile) {
 				}
 				curr.Adjacent[step] = tile
 				tile.Adjacent[step.Neg()] = curr
-				connectTile(curr, tile)
 			}
+		}
+
+		// make sure curr neighbors are fully interconnected
+		for _, adj := range curr.Adjacent {
+			connectTile(curr, adj)
 		}
 	}
 }
@@ -296,7 +297,7 @@ func findTile(origin *Tile, dest Offset) (tile *Tile, ok bool) {
 	return nil, false
 }
 
-// connectTile informs the neighbors of origin of the neighboring dest Tile
+// connectTile informs the neighbors of origin of the neighboring dest Tile.
 func connectTile(origin, dest *Tile) {
 	for _, adj := range origin.Adjacent {
 		adjStep := dest.Offset.Sub(adj.Offset)

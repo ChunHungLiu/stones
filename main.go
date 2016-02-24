@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	origin := core.HalfBraidMaze(30, .5, .5, .5)
+	origin := core.HalfBraidMaze(50, .5, 1, .5)
 
 	core.MustTermInit()
 	defer core.TermDone()
