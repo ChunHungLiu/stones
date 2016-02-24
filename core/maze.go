@@ -253,6 +253,8 @@ func isDiag(o Offset) bool {
 	return Abs(o.X) == 1 && Abs(o.Y) == 1
 }
 
+// connectMaze completes the missing connections of a maze by connecting each
+// Tile through its neighbors, and adding walls where needed.
 func connectMaze(origin *Tile) {
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}
@@ -267,7 +269,6 @@ func connectMaze(origin *Tile) {
 					frontier = append(frontier, adj)
 					visited[adj] = struct{}{}
 				}
-				connectTile(curr, adj)
 			} else {
 				off := curr.Offset.Add(step)
 				tile, ok := findTile(curr, off)
@@ -284,6 +285,7 @@ func connectMaze(origin *Tile) {
 	}
 }
 
+// findTile queries the neighbors of origin for a Tile at the given dest.
 func findTile(origin *Tile, dest Offset) (tile *Tile, ok bool) {
 	for _, adj := range origin.Adjacent {
 		adjStep := dest.Sub(adj.Offset)
@@ -294,6 +296,7 @@ func findTile(origin *Tile, dest Offset) (tile *Tile, ok bool) {
 	return nil, false
 }
 
+// connectTile informs the neighbors of origin of the neighboring dest Tile
 func connectTile(origin, dest *Tile) {
 	for _, adj := range origin.Adjacent {
 		adjStep := dest.Offset.Sub(adj.Offset)
