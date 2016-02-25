@@ -286,12 +286,15 @@ func connectDiagonals(origin *Tile) {
 	}
 }
 
+// addWalls connects each passable tile to a wall where needed. Walls are *not*
+// connected, and their adjacency should never be used as a result.
 func addWalls(origin *Tile) {
+	// setup breadth-first graph traversal bookkeeping
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}
 
 	for len(frontier) != 0 {
-		// pop in breadth first fashion
+		// pop queue in breadth first fashion
 		curr := frontier[0]
 		frontier = frontier[1:]
 
@@ -305,7 +308,9 @@ func addWalls(origin *Tile) {
 				off := curr.Offset.Add(step)
 				wall, ok := findWall(curr, off)
 				if !ok {
-					wall = newWall(off)
+					wall = NewTile(off)
+					wall.Pass = false
+					wall.Face = Glyph{'#', ColorWhite}
 				}
 				curr.Adjacent[step] = wall
 			}
@@ -322,13 +327,6 @@ func findWall(origin *Tile, dest Offset) (tile *Tile, ok bool) {
 		}
 	}
 	return nil, false
-}
-
-func newWall(o Offset) *Tile {
-	wall := NewTile(o)
-	wall.Pass = false
-	wall.Face = Glyph{'#', ColorWhite}
-	return wall
 }
 
 // TODO Add dungeon
