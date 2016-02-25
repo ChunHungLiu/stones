@@ -12,7 +12,7 @@ type abstractmaze struct {
 	Nodes  map[Offset][]*mazenode
 }
 
-// Data needed by abstractPerfect to iterate through directional Offsets.
+// Data needed by maze generation to iterate through directional Offsets.
 var (
 	orthogonal = [4]Offset{
 		{0, 1},
@@ -145,8 +145,8 @@ func removeDeadends(m abstractmaze, loopProb float64) {
 			// since there was no valid edge to connect, we have a straggler
 			// we just delete nodes until we no longer have a dead end
 			for len(deadend.Edges) == 1 {
-
-				// delete(m.Nodes, deadend.Pos) // FIXME delete *only* the deadend
+				// remove deadend from the maze
+				m.Nodes[deadend.Pos] = remove(m.Nodes[deadend.Pos], deadend)
 
 				// find the node adjacent to the deadend, and delete its edge
 				// to the deadend. it will either be the next dead end to prune
@@ -165,6 +165,16 @@ func removeDeadends(m abstractmaze, loopProb float64) {
 			neighbor.Edges[step.Neg()] = deadend
 		}
 	}
+}
+
+// remove returns a slice which is l with n removed.
+func remove(l []*mazenode, n *mazenode) []*mazenode {
+	for i, v := range l {
+		if n == v {
+			return append(l[:i], l[i+1:]...)
+		}
+	}
+	return l
 }
 
 // PerfectMaze creates a set of Tile which form a perfect maze (meaning the
@@ -218,6 +228,8 @@ func createPassTiles(m abstractmaze) *Tile {
 		frontier = frontier[:len(frontier)-1]
 		nodeTile := visited[node]
 
+		// for each edge, create a Tile for the edge, and (if needed) a Tile for
+		// the adjacent node
 		for step, adj := range node.Edges {
 			if _, edgeExists := nodeTile.Adjacent[step]; !edgeExists {
 				negStep := step.Neg()
@@ -249,6 +261,7 @@ func createPassTiles(m abstractmaze) *Tile {
 	return visited[m.Origin]
 }
 
+// isDiag returns true if the Offset is a single diagonal step.
 func isDiag(o Offset) bool {
 	return Abs(o.X) == 1 && Abs(o.Y) == 1
 }
@@ -298,21 +311,29 @@ func addWalls(origin *Tile) {
 		curr := frontier[0]
 		frontier = frontier[1:]
 
+		// for each step, ensure we have an edge.
 		for _, step := range cardinal {
 			if adj, ok := curr.Adjacent[step]; ok {
+				// if the edge already exists, just add it if passable.
 				if _, seen := visited[adj]; !seen && adj.Pass {
 					frontier = append(frontier, adj)
 					visited[adj] = struct{}{}
 				}
 			} else {
+				// try and find a pre-made wall through my neighbors
 				off := curr.Offset.Add(step)
 				wall, ok := findWall(curr, off)
 				if !ok {
+					// create a wall if none was found
 					wall = NewTile(off)
 					wall.Pass = false
 					wall.Face = Glyph{'#', ColorWhite}
 				}
+				// connect to the wall - note that this connection means that
+				// nearby nodes will reuse this one when they are popped off
+				// the queue in breadth first fashion.
 				curr.Adjacent[step] = wall
+				wall.Adjacent[step.Neg()] = curr
 			}
 		}
 	}

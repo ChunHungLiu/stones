@@ -129,6 +129,14 @@ func completeTable(table map[Offset]map[Offset]struct{}) {
 
 // wallfix fills in some missing wall artifacts in a field of view.
 func wallfix(fov map[Offset]*Tile, radius int) {
+	// Each of the four code block does the same basic thing in a different
+	// direction. Basically we just march in an orthogonal direction adding
+	// adjacent tiles as we go. Each block starts one tile from the origin and
+	// goes until either the end of the fov range, which will either be after an
+	// impassable Tile or the edge of the fov radius. In the case of an
+	// impassable Tile, we also check adjacency through the previous (passable)
+	// Tile, avoiding visual inconsistencies when multiple edges connect to a
+	// single impassable Tile.
 	for dx := 1; dx <= radius; dx++ {
 		if _, ok := fov[Offset{dx, 0}]; ok {
 			pos := fov[Offset{dx - 1, 0}]
