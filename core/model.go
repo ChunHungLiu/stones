@@ -32,6 +32,9 @@ type Tile struct {
 	Occupant Entity
 }
 
+// XXX Enforce that no impassable Tile is used to look up adjacency or occupant
+// XXX Ensure that core honors the impassable adjacency/occupancy restriction
+
 // NewTile creates a new Tile with no neighbors or occupant.
 func NewTile(o Offset) *Tile {
 	return &Tile{Glyph{'.', ColorWhite}, true, o, make(map[Offset]*Tile), nil}

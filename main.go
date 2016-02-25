@@ -6,7 +6,11 @@ import (
 )
 
 func main() {
-	origin := core.HalfBraidMaze(50, .5, 1, .5)
+	numNodes := 50
+	runProb := .5
+	weaveProb := .5
+	loopProb := .5
+	origin := core.HalfBraidMaze(numNodes, runProb, weaveProb, loopProb)
 
 	core.MustTermInit()
 	defer core.TermDone()

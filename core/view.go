@@ -129,34 +129,38 @@ func completeTable(table map[Offset]map[Offset]struct{}) {
 
 // wallfix fills in some missing wall artifacts in a field of view.
 func wallfix(fov map[Offset]*Tile, radius int) {
-	for dx := 0; dx <= radius; dx++ {
-		if pos, ok := fov[Offset{dx, 0}]; ok {
-			fov[Offset{dx, 1}] = pos.Adjacent[Offset{0, 1}]
-			fov[Offset{dx, -1}] = pos.Adjacent[Offset{0, -1}]
+	for dx := 1; dx <= radius; dx++ {
+		if _, ok := fov[Offset{dx, 0}]; ok {
+			pos := fov[Offset{dx - 1, 0}]
+			fov[Offset{dx, 1}] = pos.Adjacent[Offset{1, 1}]
+			fov[Offset{dx, -1}] = pos.Adjacent[Offset{1, -1}]
 		} else {
 			break
 		}
 	}
-	for dx := 0; dx >= -radius; dx-- {
-		if pos, ok := fov[Offset{dx, 0}]; ok {
-			fov[Offset{dx, 1}] = pos.Adjacent[Offset{0, 1}]
-			fov[Offset{dx, -1}] = pos.Adjacent[Offset{0, -1}]
+	for dx := -1; dx >= -radius; dx-- {
+		if _, ok := fov[Offset{dx, 0}]; ok {
+			pos := fov[Offset{dx + 1, 0}]
+			fov[Offset{dx, 1}] = pos.Adjacent[Offset{-1, 1}]
+			fov[Offset{dx, -1}] = pos.Adjacent[Offset{-1, -1}]
 		} else {
 			break
 		}
 	}
-	for dy := 0; dy <= radius; dy++ {
-		if pos, ok := fov[Offset{0, dy}]; ok {
-			fov[Offset{1, dy}] = pos.Adjacent[Offset{1, 0}]
-			fov[Offset{-1, dy}] = pos.Adjacent[Offset{-1, 0}]
+	for dy := 1; dy <= radius; dy++ {
+		if _, ok := fov[Offset{0, dy}]; ok {
+			pos := fov[Offset{0, dy - 1}]
+			fov[Offset{1, dy}] = pos.Adjacent[Offset{1, 1}]
+			fov[Offset{-1, dy}] = pos.Adjacent[Offset{-1, 1}]
 		} else {
 			break
 		}
 	}
-	for dy := 0; dy >= -radius; dy-- {
-		if pos, ok := fov[Offset{0, dy}]; ok {
-			fov[Offset{1, dy}] = pos.Adjacent[Offset{1, 0}]
-			fov[Offset{-1, dy}] = pos.Adjacent[Offset{-1, 0}]
+	for dy := -1; dy >= -radius; dy-- {
+		if _, ok := fov[Offset{0, dy}]; ok {
+			pos := fov[Offset{0, dy + 1}]
+			fov[Offset{1, dy}] = pos.Adjacent[Offset{1, -1}]
+			fov[Offset{-1, dy}] = pos.Adjacent[Offset{-1, -1}]
 		} else {
 			break
 		}
