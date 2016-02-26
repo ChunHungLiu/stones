@@ -1,5 +1,74 @@
 package core
 
+type BoolTileFactory func(o Offset, pass bool) *Tile
+
+// PerfectMaze creates a set of Tile which form a perfect maze (meaning the
+// maze has no loops). The value of n specifies the size of the underlying graph
+// describing the maze, which is related to but not equal to the number of Tile
+// in the result maze. The runProb specifies how often the algorithm will try
+// to continue extending a corridor, as opposed to starting a new branch.
+func (f BoolTileFactory) PerfectMaze(n int, runProb, weaveProb float64) *Tile {
+	return applyMaze(abstractPerfect(n, runProb, weaveProb), f)
+}
+
+// BraidMaze creates a set of Tile which form a braid maze (meaning the maze
+// has no dead ends). The value of n specifies the size of the underlying graph
+// describing the maze, which is related to but not equal to the number of Tile
+// in the result maze. The runProb specifies how often the algorithm will try
+// to continue extending a corridor, as opposed to starting a new branch.
+func (f BoolTileFactory) BraidMaze(n int, runProb, weaveProb float64) *Tile {
+	return applyMaze(abstractBraid(n, runProb, weaveProb, 1), f)
+}
+
+// HalfBraidMaze creates a set of Tile which form a half-braid maze (meaning the
+// maze will have some dead ends and some loops). The value of n specifies the
+// size of the underlying graph describing the maze, which is related to but not
+// equal to the number of Tile in the result maze. The runProb specifies how
+// often the algorithm will try to continue extending a corridor, as opposed to
+// starting a new branch. The loopProb is the probability of removing a
+// deadend by creating a loop.
+func (f BoolTileFactory) HalfBraidMaze(n int, runProb, weaveProb, loopProb float64) *Tile {
+	return applyMaze(abstractBraid(n, runProb, weaveProb, loopProb), f)
+}
+
+var DefaultBoolTileFactory = func(o Offset, pass bool) *Tile {
+	t := NewTile(o)
+	t.Pass = pass
+	if !pass {
+		t.Face = Glyph{'#', ColorWhite}
+	}
+	return t
+}
+
+// PerfectMaze creates a set of Tile which form a perfect maze (meaning the
+// maze has no loops). The value of n specifies the size of the underlying graph
+// describing the maze, which is related to but not equal to the number of Tile
+// in the result maze. The runProb specifies how often the algorithm will try
+// to continue extending a corridor, as opposed to starting a new branch.
+func PerfectMaze(n int, runProb, weaveProb float64) *Tile {
+	return applyMaze(abstractPerfect(n, runProb, weaveProb), DefaultBoolTileFactory)
+}
+
+// BraidMaze creates a set of Tile which form a braid maze (meaning the maze
+// has no dead ends). The value of n specifies the size of the underlying graph
+// describing the maze, which is related to but not equal to the number of Tile
+// in the result maze. The runProb specifies how often the algorithm will try
+// to continue extending a corridor, as opposed to starting a new branch.
+func BraidMaze(n int, runProb, weaveProb float64) *Tile {
+	return applyMaze(abstractBraid(n, runProb, weaveProb, 1), DefaultBoolTileFactory)
+}
+
+// HalfBraidMaze creates a set of Tile which form a half-braid maze (meaning the
+// maze will have some dead ends and some loops). The value of n specifies the
+// size of the underlying graph describing the maze, which is related to but not
+// equal to the number of Tile in the result maze. The runProb specifies how
+// often the algorithm will try to continue extending a corridor, as opposed to
+// starting a new branch. The loopProb is the probability of removing a
+// deadend by creating a loop.
+func HalfBraidMaze(n int, runProb, weaveProb, loopProb float64) *Tile {
+	return applyMaze(abstractBraid(n, runProb, weaveProb, loopProb), DefaultBoolTileFactory)
+}
+
 // mazenode is a single node (in the graph sense) in an abstractmaze
 type mazenode struct {
 	Pos   Offset
@@ -177,50 +246,21 @@ func remove(l []*mazenode, n *mazenode) []*mazenode {
 	return l
 }
 
-// PerfectMaze creates a set of Tile which form a perfect maze (meaning the
-// maze has no loops). The value of n specifies the size of the underlying graph
-// describing the maze, which is related to but not equal to the number of Tile
-// in the result maze. The runProb specifies how often the algorithm will try
-// to continue extending a corridor, as opposed to starting a new branch.
-func PerfectMaze(n int, runProb, weaveProb float64) *Tile {
-	return applyMaze(abstractPerfect(n, runProb, weaveProb))
-}
-
-// BraidMaze creates a set of Tile which form a braid maze (meaning the maze
-// has no dead ends). The value of n specifies the size of the underlying graph
-// describing the maze, which is related to but not equal to the number of Tile
-// in the result maze. The runProb specifies how often the algorithm will try
-// to continue extending a corridor, as opposed to starting a new branch.
-func BraidMaze(n int, runProb, weaveProb float64) *Tile {
-	return applyMaze(abstractBraid(n, runProb, weaveProb, 1))
-}
-
-// HalfBraidMaze creates a set of Tile which form a half-braid maze (meaning the
-// maze will have some dead ends and some loops). The value of n specifies the
-// size of the underlying graph describing the maze, which is related to but not
-// equal to the number of Tile in the result maze. The runProb specifies how
-// often the algorithm will try to continue extending a corridor, as opposed to
-// starting a new branch. The loopProb is the probability of removing a
-// deadend by creating a loop.
-func HalfBraidMaze(n int, runProb, weaveProb, loopProb float64) *Tile {
-	return applyMaze(abstractBraid(n, runProb, weaveProb, loopProb))
-}
-
 // applyMaze converts each node and edge an abstract maze to a single Tile.
 // The origin Tile of the maze is returned.
-func applyMaze(m abstractmaze) *Tile {
-	origin := createPassTiles(m)
+func applyMaze(m abstractmaze, f BoolTileFactory) *Tile {
+	origin := createPassTiles(m, f)
 	connectDiagonals(origin)
-	addWalls(origin)
+	addWalls(origin, f)
 	return origin
 }
 
 // createPassTiles returns a set of passable Tiles (given by the origin Tile)
 // corresponding to the nodes and edges of an abstractmaze.
-func createPassTiles(m abstractmaze) *Tile {
+func createPassTiles(m abstractmaze, f BoolTileFactory) *Tile {
 	// graph traversal bookkeeping
 	frontier := []*mazenode{m.Origin}
-	visited := map[*mazenode]*Tile{m.Origin: NewTile(m.Origin.Pos.Scale(2))}
+	visited := map[*mazenode]*Tile{m.Origin: f(Offset{}, true)}
 
 	for len(frontier) != 0 {
 		// pop the next node and grab its corresponding Tile
@@ -236,7 +276,7 @@ func createPassTiles(m abstractmaze) *Tile {
 
 				// create a Tile corresponding to the edge between node and adj
 				edgeOff := nodeTile.Offset.Add(step)
-				edgeTile := NewTile(edgeOff)
+				edgeTile := f(edgeOff, true)
 				nodeTile.Adjacent[step] = edgeTile
 				edgeTile.Adjacent[negStep] = nodeTile
 
@@ -247,7 +287,7 @@ func createPassTiles(m abstractmaze) *Tile {
 				// seen the adj, but not popped it from the frontier yet. Thus,
 				// this check is needed so we don't create the adj node twice.
 				if !seen {
-					adjTile = NewTile(edgeOff.Add(step))
+					adjTile = f(edgeOff.Add(step), true)
 					// Since we found a new node, we should enqueue it now
 					visited[adj] = adjTile
 					frontier = append(frontier, adj)
@@ -301,7 +341,7 @@ func connectDiagonals(origin *Tile) {
 
 // addWalls connects each passable tile to a wall where needed. Walls are *not*
 // connected, and their adjacency should never be used as a result.
-func addWalls(origin *Tile) {
+func addWalls(origin *Tile, f BoolTileFactory) {
 	// setup breadth-first graph traversal bookkeeping
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}
@@ -324,10 +364,7 @@ func addWalls(origin *Tile) {
 				off := curr.Offset.Add(step)
 				wall, ok := findWall(curr, off)
 				if !ok {
-					// create a wall if none was found
-					wall = NewTile(off)
-					wall.Pass = false
-					wall.Face = Glyph{'#', ColorWhite}
+					wall = f(off, false)
 				}
 				// connect to the wall - note that this connection means that
 				// nearby nodes will reuse this one when they are popped off

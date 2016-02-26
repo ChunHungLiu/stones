@@ -32,6 +32,8 @@ type Tile struct {
 	Occupant Entity
 }
 
+// TODO Add translucent attribute to Tile of FoV purposes
+
 // NewTile creates a new Tile with no neighbors or occupant.
 func NewTile(o Offset) *Tile {
 	return &Tile{Glyph{'.', ColorWhite}, true, o, make(map[Offset]*Tile), nil}
