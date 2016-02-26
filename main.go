@@ -13,6 +13,7 @@ func genMaze() *core.Tile {
 	gen := core.BoolTileFactory(func(o core.Offset, pass bool) *core.Tile {
 		t := core.NewTile(o)
 		t.Pass = pass
+		t.Lite = pass
 		if pass {
 			t.Face = core.Glyph{'.', core.ColorLightRed}
 		} else {

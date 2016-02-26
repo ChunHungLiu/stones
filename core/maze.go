@@ -34,6 +34,7 @@ func (f BoolTileFactory) HalfBraidMaze(n int, runProb, weaveProb, loopProb float
 var DefaultBoolTileFactory = func(o Offset, pass bool) *Tile {
 	t := NewTile(o)
 	t.Pass = pass
+	t.Lite = pass
 	if !pass {
 		t.Face = Glyph{'#', ColorWhite}
 	}

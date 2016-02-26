@@ -35,10 +35,10 @@ func FoV(origin *Tile, radius int) map[Offset]*Tile {
 			neighbor := tile.Adjacent[adj.Sub(off)]
 			fov[adj] = neighbor
 
-			// If the neighbor is passable, push it onto the stack to continue
-			// exploration. Since we already added it to fov, when we pop it,
-			// we'll be able to access the position again.
-			if neighbor.Pass {
+			// If the neighbor is translucient, push it onto the stack to
+			// continue exploration. Since we already added it to fov, when we
+			// pop it, we'll be able to access the position again.
+			if neighbor.Lite {
 				stack = append(stack, adj)
 			}
 		}
@@ -133,10 +133,10 @@ func wallfix(fov map[Offset]*Tile, radius int) {
 	// direction. Basically we just march in an orthogonal direction adding
 	// adjacent tiles as we go. Each block starts one tile from the origin and
 	// goes until either the end of the fov range, which will either be after an
-	// impassable Tile or the edge of the fov radius. In the case of an
-	// impassable Tile, we also check adjacency through the previous (passable)
-	// Tile, avoiding visual inconsistencies when multiple edges connect to a
-	// single impassable Tile.
+	// non-translucient Tile or the edge of the fov radius. In the case of an
+	// non-translucient  Tile, we also check adjacency through the previous
+	// (translucient) Tile, avoiding visual inconsistencies when multiple edges
+	// connect to a single non-translucient Tile.
 	for dx := 1; dx <= radius; dx++ {
 		if _, ok := fov[Offset{dx, 0}]; ok {
 			pos := fov[Offset{dx - 1, 0}]
@@ -204,14 +204,14 @@ func Trace(goal Offset) []Offset {
 }
 
 // LoS returns true if the line from origin to goal computed by Trace does not
-// contain an impassible Tile. The line is computed using the same heuristic as
-// FoV, so if LoS returns true, then the goal tile would also be included in
-// the computed field of view (assuming large enough radius).
+// contain a non-translucient Tile. The line is computed using the same
+// heuristic as FoV, so if LoS returns true, then the goal tile would also be
+// included in the computed field of view (assuming large enough radius).
 func LoS(origin, goal *Tile) bool {
 	curr := goal.Offset.Sub(origin.Offset)
 	table := getReverseTable(curr)
 	for goal != origin {
-		if !goal.Pass {
+		if !goal.Lite {
 			return false
 		}
 		next := table[curr]

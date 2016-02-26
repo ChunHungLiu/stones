@@ -27,16 +27,15 @@ func (e ComponentSlice) Handle(v Event) {
 type Tile struct {
 	Face     Glyph
 	Pass     bool
+	Lite     bool
 	Offset   Offset
 	Adjacent map[Offset]*Tile
 	Occupant Entity
 }
 
-// TODO Add translucent attribute to Tile of FoV purposes
-
 // NewTile creates a new Tile with no neighbors or occupant.
 func NewTile(o Offset) *Tile {
-	return &Tile{Glyph{'.', ColorWhite}, true, o, make(map[Offset]*Tile), nil}
+	return &Tile{Glyph{'.', ColorWhite}, true, true, o, make(map[Offset]*Tile), nil}
 }
 
 // Handle implements Entity for Tile
