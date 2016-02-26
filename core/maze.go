@@ -215,7 +215,8 @@ func removeDeadends(m abstractmaze, loopProb float64) {
 			// we just delete nodes until we no longer have a dead end
 			for len(deadend.Edges) == 1 {
 				// remove deadend from the maze
-				m.Nodes[deadend.Pos] = remove(m.Nodes[deadend.Pos], deadend)
+				// m.Nodes[deadend.Pos] = remove(m.Nodes[deadend.Pos], deadend)
+				// FIXME remove was causing stuff to be removed that shouldnt have
 
 				// find the node adjacent to the deadend, and delete its edge
 				// to the deadend. it will either be the next dead end to prune
