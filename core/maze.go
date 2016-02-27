@@ -104,10 +104,10 @@ var (
 
 // abstractPerfect generates an abstractmaze with the given number of nodes.
 // This maze will be perfect, meaning that it has no loops.
-func abstractPerfect(n int, runProb, weaveProb float64) abstractmaze {
+func abstractPerfect(n int, runProb, weaveProb float64) *abstractmaze {
 	// set up bookkeeping for growing tree algorithm
 	origin := &mazenode{Offset{}, make(map[Offset]*mazenode)}
-	maze := abstractmaze{origin, map[Offset][]*mazenode{origin.Pos: {origin}}}
+	maze := &abstractmaze{origin, map[Offset][]*mazenode{origin.Pos: {origin}}}
 	frontier := []*mazenode{origin}
 	nodesAdded := 1
 
@@ -157,9 +157,9 @@ func abstractPerfect(n int, runProb, weaveProb float64) abstractmaze {
 
 // abstractPerfect generates an abstractmaze with the given number of nodes.
 // This maze will be a braid, meaning that it has no deadends.
-func abstractBraid(n int, runProb, weaveProb, loopProb float64) abstractmaze {
+func abstractBraid(n int, runProb, weaveProb, loopProb float64) *abstractmaze {
 	maze := abstractPerfect(n, runProb, weaveProb)
-	removeDeadends(&maze, loopProb)
+	removeDeadends(maze, loopProb)
 	return maze
 }
 
@@ -265,7 +265,7 @@ func remove(l []*mazenode, n *mazenode) []*mazenode {
 
 // applyMaze converts each node and edge an abstract maze to a single Tile.
 // The origin Tile of the maze is returned.
-func applyMaze(m abstractmaze, f BoolTileFactory) *Tile {
+func applyMaze(m *abstractmaze, f BoolTileFactory) *Tile {
 	origin := createPassTiles(m, f)
 	connectDiagonals(origin)
 	addWalls(origin, f)
@@ -274,7 +274,7 @@ func applyMaze(m abstractmaze, f BoolTileFactory) *Tile {
 
 // createPassTiles returns a set of passable Tiles (given by the origin Tile)
 // corresponding to the nodes and edges of an abstractmaze.
-func createPassTiles(m abstractmaze, f BoolTileFactory) *Tile {
+func createPassTiles(m *abstractmaze, f BoolTileFactory) *Tile {
 	// graph traversal bookkeeping
 	frontier := []*mazenode{m.Origin}
 	visited := map[*mazenode]*Tile{m.Origin: f(Offset{}, true)}
