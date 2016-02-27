@@ -78,8 +78,17 @@ type mazenode struct {
 
 // abstractmaze represents the graph structure of a maze
 type abstractmaze struct {
-	Origin *mazenode
-	Nodes  map[Offset][]*mazenode
+	Nodes map[Offset][]*mazenode
+}
+
+func (m *abstractmaze) GetArbitraryNode() *mazenode {
+	for _, nodelist := range m.Nodes {
+		for _, node := range nodelist {
+			return node
+		}
+	}
+
+	return nil
 }
 
 // Data needed by maze generation to iterate through directional Offsets.
@@ -107,9 +116,11 @@ var (
 func abstractPerfect(n int, runProb, weaveProb float64) *abstractmaze {
 	// set up bookkeeping for growing tree algorithm
 	origin := &mazenode{Offset{}, make(map[Offset]*mazenode)}
-	maze := &abstractmaze{origin, map[Offset][]*mazenode{origin.Pos: {origin}}}
+	maze := &abstractmaze{map[Offset][]*mazenode{origin.Pos: {origin}}}
 	frontier := []*mazenode{origin}
 	nodesAdded := 1
+
+	// TODO Separate bookkeeping from node adding to create extendMaze
 
 	// our frontier size is unbounded, so stop when we've added enough nodes.
 	for nodesAdded < n {
@@ -167,18 +178,12 @@ func abstractBraid(n int, runProb, weaveProb, loopProb float64) *abstractmaze {
 // Deadends are removed by adding an edge to an unconnected but adjacent node.
 // Deadends which have no unconnected adjacent node are simply removed.
 func removeDeadends(m *abstractmaze, loopProb float64) {
-	// if origin is a deadend, then it may be removed, so we preemptively find
-	// a non-deadend origin
-	for len(m.Origin.Edges) == 1 {
-		for _, adj := range m.Origin.Edges {
-			m.Origin = adj
-		}
-	}
+	origin := m.GetArbitraryNode()
 
 	// find all the dead ends - nodes which have only one edge
 	deadends := []*mazenode{}
-	frontier := []*mazenode{m.Origin}
-	visited := map[*mazenode]struct{}{m.Origin: {}}
+	frontier := []*mazenode{origin}
+	visited := map[*mazenode]struct{}{origin: {}}
 	for len(frontier) != 0 {
 		curr := frontier[len(frontier)-1]
 		frontier = frontier[:len(frontier)-1]
@@ -231,8 +236,7 @@ func removeDeadends(m *abstractmaze, loopProb float64) {
 		if len(candidates) == 0 {
 			// since there was no valid edge to connect, we have a straggler
 			// and we just delete the node
-			// m.Nodes[deadend.Pos] = remove(m.Nodes[deadend.Pos], deadend)
-			// FIXME remove was causing stuff to be removed that shouldnt have
+			m.Nodes[deadend.Pos] = remove(m.Nodes[deadend.Pos], deadend)
 
 			// find the node adjacent to the deadend, and delete its edge
 			// to the deadend. it will either be the next dead end to prune
@@ -275,9 +279,11 @@ func applyMaze(m *abstractmaze, f BoolTileFactory) *Tile {
 // createPassTiles returns a set of passable Tiles (given by the origin Tile)
 // corresponding to the nodes and edges of an abstractmaze.
 func createPassTiles(m *abstractmaze, f BoolTileFactory) *Tile {
+	origin := m.GetArbitraryNode()
+
 	// graph traversal bookkeeping
-	frontier := []*mazenode{m.Origin}
-	visited := map[*mazenode]*Tile{m.Origin: f(Offset{}, true)}
+	frontier := []*mazenode{origin}
+	visited := map[*mazenode]*Tile{origin: f(Offset{}, true)}
 
 	for len(frontier) != 0 {
 		// pop the next node and grab its corresponding Tile
@@ -315,7 +321,7 @@ func createPassTiles(m *abstractmaze, f BoolTileFactory) *Tile {
 		}
 	}
 
-	return visited[m.Origin]
+	return visited[m.GetArbitraryNode()]
 }
 
 // isDiag returns true if the Offset is a single diagonal step.

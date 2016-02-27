@@ -1,26 +1,15 @@
 package core
 
-import (
-	"fmt"
-)
-
 type room struct {
 	Offset, Size Offset
 }
 
 func (r room) rand() Offset {
-	defer func() {
-		if e := recover(); e != nil {
-			fmt.Println(r)
-			panic(e)
-		}
-	}()
 	return Offset{r.Offset.X + RandRange(1, r.Size.X-2), r.Offset.Y + RandRange(1, r.Size.Y-2)}
 }
 
 func (r room) inside(o Offset) bool {
-	return r.Offset.X <= o.X && o.X < r.Offset.X+r.Size.X &&
-		r.Offset.Y <= o.Y && o.Y < r.Offset.Y+r.Size.Y
+	return r.Offset.X <= o.X && o.X < r.Offset.X+r.Size.X && r.Offset.Y <= o.Y && o.Y < r.Offset.Y+r.Size.Y
 }
 
 func Dungeon(numRooms, minRoomSize, maxRoomSize int, f BoolTileFactory) map[*Tile]struct{} {
@@ -28,14 +17,20 @@ func Dungeon(numRooms, minRoomSize, maxRoomSize int, f BoolTileFactory) map[*Til
 	maze := abstractBraid(numRooms, .25, 0, 1)
 	rooms := make(map[*mazenode]room)
 	tiles := make(map[*Tile]struct{})
+	gridSize := maxRoomSize + minRoomSize
 
 	// create rooms
 	for _, nodes := range maze.Nodes {
 		for _, node := range nodes {
-			rooms[node] = room{
-				Offset{maxRoomSize * node.Pos.X, maxRoomSize * node.Pos.Y},
-				Offset{minRoomSize, minRoomSize},
+			size := Offset{
+				RandRange(minRoomSize, maxRoomSize),
+				RandRange(minRoomSize, maxRoomSize),
 			}
+			offset := Offset{
+				RandRange(gridSize*node.Pos.X, gridSize*(node.Pos.X+2)-size.X-1),
+				RandRange(gridSize*node.Pos.Y, gridSize*(node.Pos.Y+1)-size.Y-1),
+			}
+			rooms[node] = room{offset, size}
 		}
 	}
 
@@ -50,8 +45,9 @@ func Dungeon(numRooms, minRoomSize, maxRoomSize int, f BoolTileFactory) map[*Til
 	}
 
 	// create corridors
-	frontier := []*mazenode{maze.Origin}
-	enqued := map[*mazenode]struct{}{maze.Origin: {}}
+	origin := maze.GetArbitraryNode()
+	frontier := []*mazenode{origin}
+	enqued := map[*mazenode]struct{}{origin: {}}
 	closed := map[*mazenode]struct{}{}
 	for len(frontier) != 0 {
 		curr := frontier[0]
