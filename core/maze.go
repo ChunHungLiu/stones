@@ -159,14 +159,22 @@ func abstractPerfect(n int, runProb, weaveProb float64) abstractmaze {
 // This maze will be a braid, meaning that it has no deadends.
 func abstractBraid(n int, runProb, weaveProb, loopProb float64) abstractmaze {
 	maze := abstractPerfect(n, runProb, weaveProb)
-	removeDeadends(maze, loopProb)
+	removeDeadends(&maze, loopProb)
 	return maze
 }
 
 // removeDeadends removes a given percent of deadends from an abstractmaze.
 // Deadends are removed by adding an edge to an unconnected but adjacent node.
 // Deadends which have no unconnected adjacent node are simply removed.
-func removeDeadends(m abstractmaze, loopProb float64) {
+func removeDeadends(m *abstractmaze, loopProb float64) {
+	// if origin is a deadend, then it may be removed, so we preemptively find
+	// a non-deadend origin
+	for len(m.Origin.Edges) == 1 {
+		for _, adj := range m.Origin.Edges {
+			m.Origin = adj
+		}
+	}
+
 	// find all the dead ends - nodes which have only one edge
 	deadends := []*mazenode{}
 	frontier := []*mazenode{m.Origin}
@@ -189,7 +197,16 @@ func removeDeadends(m abstractmaze, loopProb float64) {
 
 	// remove all the dead ends by adding edges which connects deadends
 	// some deadends must simply be removed, since they have no adjacent nodes
-	for _, deadend := range deadends {
+	for len(deadends) != 0 {
+		deadend := deadends[len(deadends)-1]
+		deadends = deadends[:len(deadends)-1]
+
+		// check that deadend is still a deadend as it could have been used
+		// as a connection for another deadend
+		if len(deadend.Edges) > 1 {
+			continue
+		}
+
 		if !RandChance(loopProb) {
 			continue
 		}
@@ -203,9 +220,9 @@ func removeDeadends(m abstractmaze, loopProb float64) {
 				continue
 			}
 
-			negstep := step.Neg()
+			negStep := step.Neg()
 			for _, adj := range m.Nodes[deadend.Pos.Add(step)] {
-				if _, used := adj.Edges[negstep]; !used {
+				if _, used := adj.Edges[negStep]; !used {
 					candidates = append(candidates, adj)
 				}
 			}
@@ -213,19 +230,17 @@ func removeDeadends(m abstractmaze, loopProb float64) {
 
 		if len(candidates) == 0 {
 			// since there was no valid edge to connect, we have a straggler
-			// we just delete nodes until we no longer have a dead end
-			for len(deadend.Edges) == 1 {
-				// remove deadend from the maze
-				// m.Nodes[deadend.Pos] = remove(m.Nodes[deadend.Pos], deadend)
-				// FIXME remove was causing stuff to be removed that shouldnt have
+			// and we just delete the node
+			// m.Nodes[deadend.Pos] = remove(m.Nodes[deadend.Pos], deadend)
+			// FIXME remove was causing stuff to be removed that shouldnt have
 
-				// find the node adjacent to the deadend, and delete its edge
-				// to the deadend. it will either be the next dead end to prune
-				// or will be left alone if it has 2+ edges remaining.
-				for step, adj := range deadend.Edges {
-					delete(adj.Edges, step.Neg())
-					deadend = adj
-					break // there is only one adjacent node to a deadend
+			// find the node adjacent to the deadend, and delete its edge
+			// to the deadend. it will either be the next dead end to prune
+			// or will be left alone if it has 2+ edges remaining.
+			for step, adj := range deadend.Edges {
+				delete(adj.Edges, step.Neg())
+				if len(adj.Edges) == 1 {
+					deadends = append(deadends, adj)
 				}
 			}
 		} else {

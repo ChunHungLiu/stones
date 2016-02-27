@@ -25,7 +25,7 @@ func (r room) inside(o Offset) bool {
 
 func Dungeon(numRooms, minRoomSize, maxRoomSize int, f BoolTileFactory) map[*Tile]struct{} {
 	// TODO Added in better maze gen customization
-	maze := abstractBraid(numRooms, .5, .5, .5)
+	maze := abstractBraid(numRooms, .25, 0, 1)
 	rooms := make(map[*mazenode]room)
 	tiles := make(map[*Tile]struct{})
 
@@ -51,48 +51,57 @@ func Dungeon(numRooms, minRoomSize, maxRoomSize int, f BoolTileFactory) map[*Til
 
 	// create corridors
 	frontier := []*mazenode{maze.Origin}
-	visited := map[*mazenode]struct{}{maze.Origin: {}}
+	enqued := map[*mazenode]struct{}{maze.Origin: {}}
+	closed := map[*mazenode]struct{}{}
 	for len(frontier) != 0 {
 		curr := frontier[0]
 		frontier = frontier[1:]
+
+		if _, done := closed[curr]; done {
+			continue
+		}
+		closed[curr] = struct{}{}
+
 		for _, adj := range curr.Edges {
-			if _, seen := visited[adj]; !seen {
-				frontier = append(frontier, adj)
-				visited[adj] = struct{}{}
-
-				srcroom, srcok := rooms[curr]
-				if !srcok {
-					panic(curr)
-				}
-				dstroom, dstok := rooms[adj]
-				if !dstok {
-					panic(curr)
-				}
-
-				src, dst := srcroom.rand(), dstroom.rand()
-
-				for src.X != dst.X {
-					if !rooms[curr].inside(src) && !rooms[adj].inside(src) {
-						tiles[f(src, true)] = struct{}{}
-					}
-					if src.X < dst.X {
-						src.X++
-					} else {
-						src.X--
-					}
-				}
-				for src.Y != dst.Y {
-					if !rooms[curr].inside(src) && !rooms[adj].inside(src) {
-						tiles[f(src, true)] = struct{}{}
-					}
-					if src.Y < dst.Y {
-						src.Y++
-					} else {
-						src.Y--
-					}
-				}
-				// TODO connect corridor tiles
+			if _, done := closed[adj]; done {
+				continue
 			}
+			if _, seen := enqued[adj]; !seen {
+				frontier = append(frontier, adj)
+			}
+
+			srcroom, srcok := rooms[curr]
+			if !srcok {
+				panic(curr)
+			}
+			dstroom, dstok := rooms[adj]
+			if !dstok {
+				panic(curr)
+			}
+
+			src, dst := srcroom.rand(), dstroom.rand()
+
+			for src.X != dst.X {
+				if !rooms[curr].inside(src) && !rooms[adj].inside(src) {
+					tiles[f(src, true)] = struct{}{}
+				}
+				if src.X < dst.X {
+					src.X++
+				} else {
+					src.X--
+				}
+			}
+			for src.Y != dst.Y {
+				if !rooms[curr].inside(src) && !rooms[adj].inside(src) {
+					tiles[f(src, true)] = struct{}{}
+				}
+				if src.Y < dst.Y {
+					src.Y++
+				} else {
+					src.Y--
+				}
+			}
+			// TODO connect corridor tiles
 		}
 	}
 

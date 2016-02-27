@@ -54,7 +54,7 @@ func main() {
 	core.MustTermInit()
 	defer core.TermDone()
 
-	origin := genOverworld()
+	origin := genMaze()
 
 	hero := habilis.Skin{
 		Name: "you",
