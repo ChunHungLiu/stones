@@ -22,8 +22,8 @@ var biomes = core.BiomeList{
 		Boundary:   .3,
 		PassChance: 0,
 		ImpassTiles: []core.Glyph{
-			{ch: '~', fg: core.ColorBlue},
-			{ch: '~', fg: core.ColorLightBlue},
+			{Ch: '~', Fg: core.ColorBlue},
+			{Ch: '~', Fg: core.ColorLightBlue},
 		},
 		ImpassLite: true,
 	},
@@ -31,8 +31,8 @@ var biomes = core.BiomeList{
 		Boundary:   .4,
 		PassChance: 0,
 		ImpassTiles: []core.Glyph{
-			{ch: '~', fg: core.ColorCyan},
-			{ch: '~', fg: core.ColorLightCyan},
+			{Ch: '~', Fg: core.ColorCyan},
+			{Ch: '~', Fg: core.ColorLightCyan},
 		},
 		ImpassLite: true,
 	},
@@ -40,10 +40,10 @@ var biomes = core.BiomeList{
 		Boundary:   1,
 		PassChance: .95,
 		PassTiles: []core.Glyph{
-			{ch: '.', fg: core.ColorGreen},
+			{Ch: '.', Fg: core.ColorGreen},
 		},
 		ImpassTiles: []core.Glyph{
-			{ch: '%', fg: core.ColorGreen},
+			{Ch: '%', Fg: core.ColorGreen},
 		},
 	},
 }
