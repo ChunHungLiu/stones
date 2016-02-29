@@ -285,7 +285,7 @@ func applyMaze(m *abstractmaze, f MapGenBool) []*Tile {
 	connectDiagonals(origin)
 	addWalls(origin, f)
 
-	maze := make([]*Tile, 0)
+	var maze []*Tile
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}
 	for len(frontier) != 0 {

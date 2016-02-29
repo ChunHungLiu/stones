@@ -12,6 +12,7 @@ func (r room) inside(o Offset) bool {
 	return r.Offset.X <= o.X && o.X < r.Offset.X+r.Size.X && r.Offset.Y <= o.Y && o.Y < r.Offset.Y+r.Size.Y
 }
 
+// Dungeon stub - will eventually generate room and corridor maps.
 func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenBool) map[*Tile]struct{} {
 	// TODO Added in better maze gen customization
 	maze := abstractBraid(numRooms, .25, 0, 1)

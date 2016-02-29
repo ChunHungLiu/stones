@@ -61,6 +61,11 @@ func (d Dice) RollXdY(x, y int) int {
 	return total
 }
 
+// Tile selects a random Tile from the slice for which the condition is true.
+// The selection is done using rejection sampling - that is to say, a random
+// Tile is chosen, and will either be returned if the condition is true, or the
+// Tile will be rejected. If 100 Tile are rejected, then the Tile slice is
+// instead filtered based on the condition, and then a random Tile is chosen.
 func (d Dice) Tile(tiles []*Tile, condition func(*Tile) bool) *Tile {
 	for i := 0; i < 100; i++ {
 		if tile := tiles[d.Intn(len(tiles))]; condition(tile) {
@@ -77,6 +82,11 @@ func (d Dice) Tile(tiles []*Tile, condition func(*Tile) bool) *Tile {
 	return candidates[d.Intn(len(candidates))]
 }
 
+// PassTile selects a random passable Tile from the slice. The selection is
+// done using rejection sampling - that is to say, a random Tile is chosen, and
+// is returned if the Tile is passable, or the Tile will be rejected. If 100
+// Tile are rejected, then the Tile slice is instead filtered based on
+// passability, and then a random Tile is chosen.
 func (d Dice) PassTile(tiles []*Tile) *Tile {
 	return d.Tile(tiles, func(t *Tile) bool { return t.Pass })
 }
@@ -132,10 +142,20 @@ func RollXdY(x, y int) int {
 	return globalDice.RollXdY(x, y)
 }
 
+// RandTile selects a random Tile from the slice for which the condition is true.
+// The selection is done using rejection sampling - that is to say, a random
+// Tile is chosen, and will either be returned if the condition is true, or the
+// Tile will be rejected. If 100 Tile are rejected, then the Tile slice is
+// instead filtered based on the condition, and then a random Tile is chosen.
 func RandTile(tiles []*Tile, condition func(*Tile) bool) *Tile {
 	return globalDice.Tile(tiles, condition)
 }
 
+// RandPassTile selects a random passable Tile from the slice. The selection is
+// done using rejection sampling - that is to say, a random Tile is chosen, and
+// is returned if the Tile is passable, or the Tile will be rejected. If 100
+// Tile are rejected, then the Tile slice is instead filtered based on
+// passability, and then a random Tile is chosen.
 func RandPassTile(tiles []*Tile) *Tile {
 	return globalDice.PassTile(tiles)
 }
