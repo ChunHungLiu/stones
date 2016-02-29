@@ -8,10 +8,12 @@ import (
 // MapGenFloat generates Tiles from float64 values to form overworld maps.
 type MapGenFloat func(o Offset, height float64) *Tile
 
+// Overworld creates a new map from a Heightmap.
 func (f MapGenFloat) Overworld(h *Heightmap) []*Tile {
 	return h.Apply(f)
 }
 
+// Biome stores data for generating Tile in a single region of an overworld.
 type Biome struct {
 	Boundary    float64
 	PassTiles   []Glyph
@@ -20,6 +22,7 @@ type Biome struct {
 	ImpassLite  bool
 }
 
+// Generate creates a new tile chosen according to the Biome parameters.
 func (b Biome) Generate(o Offset) *Tile {
 	t := NewTile(o)
 	if RandChance(b.PassChance) {
@@ -32,20 +35,25 @@ func (b Biome) Generate(o Offset) *Tile {
 	return t
 }
 
+// BiomeList stores a list of Biome needed create a Biome-based MapGenFloat.
 type BiomeList []Biome
 
+// Len returns the len of the underlying Biome slice.
 func (l BiomeList) Len() int {
 	return len(l)
 }
 
+// Less returns true if the boundary for the ith Biome is less than the jth.
 func (l BiomeList) Less(i, j int) bool {
 	return l[i].Boundary < l[j].Boundary
 }
 
+// Swap switches the ith and jth Biome in the list.
 func (l BiomeList) Swap(i, j int) {
 	l[i], l[j] = l[j], l[i]
 }
 
+// NewMapGen creates a new MapGenFloat using the Biome data.
 func (l BiomeList) NewMapGen() MapGenFloat {
 	lcopy := make(BiomeList, len(l))
 	copy(lcopy, l)
@@ -61,12 +69,6 @@ func (l BiomeList) NewMapGen() MapGenFloat {
 		return maxbiome.Generate(o)
 	}
 }
-
-// TODO Add function to connect overworld with maze
-// allow caller to specify entrance/exit criteria
-// translate maze coordinates to match overworld coordinates
-// fully connect maze entrance with overworld
-// fully connect overworld connection neighbors with maze
 
 // Heightmap is a grid of float64, with methods for manipulating the heightmap.
 type Heightmap struct {
@@ -204,6 +206,7 @@ func (h *Heightmap) Normalize() {
 	}
 }
 
+// Apply genereates a new map from a MapGenFloat.
 func (h *Heightmap) Apply(f MapGenFloat) []*Tile {
 	backing := make([]*Tile, h.cols*h.rows)
 
@@ -286,6 +289,5 @@ func (h *Heightmap) Read(x, y int) float64 {
 	return h.buf[x][y]
 }
 
-// TODO Add FloatGridWriter wrappers for [][]Tile
 // TODO Add temperature map based on latitude and elevation
 // TODO Add precipitation map based on latitude and elevation

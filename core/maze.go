@@ -89,6 +89,9 @@ type abstractmaze struct {
 	Nodes map[Offset][]*mazenode
 }
 
+// GetArbitraryNode returns a mazenode from the maze node list. Since the node
+// is arbitrarily chosen, the caller cannot depend on the node being the same
+// across multiple calls, nor can it be depended upon to be chosen randomly.
 func (m *abstractmaze) GetArbitraryNode() *mazenode {
 	for _, nodelist := range m.Nodes {
 		for _, node := range nodelist {
@@ -437,3 +440,9 @@ func findWall(origin *Tile, dest Offset) (tile *Tile, ok bool) {
 // TODO Add dungeon
 // TODO Add caveify
 // TODO Use writer interfaces instead of directly writing Tile
+
+// TODO Add function to connect overworld with maze
+// allow caller to specify entrance/exit criteria
+// translate maze coordinates to match overworld coordinates
+// fully connect maze entrance with overworld
+// fully connect overworld connection neighbors with maze
