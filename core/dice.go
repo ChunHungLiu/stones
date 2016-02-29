@@ -61,6 +61,26 @@ func (d Dice) RollXdY(x, y int) int {
 	return total
 }
 
+func (d Dice) Tile(tiles []*Tile, condition func(*Tile) bool) *Tile {
+	for i := 0; i < 100; i++ {
+		if tile := tiles[d.Intn(len(tiles))]; condition(tile) {
+			return tile
+		}
+	}
+
+	candidates := make([]*Tile, 0)
+	for _, tile := range tiles {
+		if condition(tile) {
+			candidates = append(candidates, tile)
+		}
+	}
+	return candidates[d.Intn(len(candidates))]
+}
+
+func (d Dice) PassTile(tiles []*Tile) *Tile {
+	return d.Tile(tiles, func(t *Tile) bool { return t.Pass })
+}
+
 // Similar to the math/rand package, we use a global instance Dice. However,
 // ours uses a superior xorshift source and is seeded using the current time.
 var globalDice = NewDice(newXorshift(time.Now().UnixNano()))
@@ -110,6 +130,14 @@ func RolldY(y int) int {
 // RollXdY returns the result of rolling x y-sided dice.
 func RollXdY(x, y int) int {
 	return globalDice.RollXdY(x, y)
+}
+
+func RandTile(tiles []*Tile, condition func(*Tile) bool) *Tile {
+	return globalDice.Tile(tiles, condition)
+}
+
+func RandPassTile(tiles []*Tile) *Tile {
+	return globalDice.PassTile(tiles)
 }
 
 // RandSeed uses the provided seed value to initialize the default Source to a

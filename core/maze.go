@@ -1,13 +1,14 @@
 package core
 
-type BoolTileFactory func(o Offset, pass bool) *Tile
+// MapGenBool generates Tiles from bool values to form mazes, dungeons or caves.
+type MapGenBool func(o Offset, pass bool) *Tile
 
 // PerfectMaze creates a set of Tile which form a perfect maze (meaning the
 // maze has no loops). The value of n specifies the size of the underlying graph
 // describing the maze, which is related to but not equal to the number of Tile
 // in the result maze. The runProb specifies how often the algorithm will try
 // to continue extending a corridor, as opposed to starting a new branch.
-func (f BoolTileFactory) PerfectMaze(n int, runProb, weaveProb float64) *Tile {
+func (f MapGenBool) PerfectMaze(n int, runProb, weaveProb float64) []*Tile {
 	return applyMaze(abstractPerfect(n, runProb, weaveProb), f)
 }
 
@@ -16,7 +17,7 @@ func (f BoolTileFactory) PerfectMaze(n int, runProb, weaveProb float64) *Tile {
 // describing the maze, which is related to but not equal to the number of Tile
 // in the result maze. The runProb specifies how often the algorithm will try
 // to continue extending a corridor, as opposed to starting a new branch.
-func (f BoolTileFactory) BraidMaze(n int, runProb, weaveProb float64) *Tile {
+func (f MapGenBool) BraidMaze(n int, runProb, weaveProb float64) []*Tile {
 	return applyMaze(abstractBraid(n, runProb, weaveProb, 1), f)
 }
 
@@ -27,11 +28,13 @@ func (f BoolTileFactory) BraidMaze(n int, runProb, weaveProb float64) *Tile {
 // often the algorithm will try to continue extending a corridor, as opposed to
 // starting a new branch. The loopProb is the probability of removing a
 // deadend by creating a loop.
-func (f BoolTileFactory) HalfBraidMaze(n int, runProb, weaveProb, loopProb float64) *Tile {
+func (f MapGenBool) HalfBraidMaze(n int, runProb, weaveProb, loopProb float64) []*Tile {
 	return applyMaze(abstractBraid(n, runProb, weaveProb, loopProb), f)
 }
 
-var DefaultBoolTileFactory = func(o Offset, pass bool) *Tile {
+// defaultMapGenBool is used in the generic versions of each MapGenBool method.
+// It generates white '.' for passable Tile, and a white '#' for wall Tile.
+var defaultMapGenBool = func(o Offset, pass bool) *Tile {
 	t := NewTile(o)
 	t.Pass = pass
 	t.Lite = pass
@@ -46,8 +49,10 @@ var DefaultBoolTileFactory = func(o Offset, pass bool) *Tile {
 // describing the maze, which is related to but not equal to the number of Tile
 // in the result maze. The runProb specifies how often the algorithm will try
 // to continue extending a corridor, as opposed to starting a new branch.
-func PerfectMaze(n int, runProb, weaveProb float64) *Tile {
-	return applyMaze(abstractPerfect(n, runProb, weaveProb), DefaultBoolTileFactory)
+// PerfectMazes uses a default MapGenBool which generates white '.' for passable
+// Tile and white '#' for wall Tile.
+func PerfectMaze(n int, runProb, weaveProb float64) []*Tile {
+	return applyMaze(abstractPerfect(n, runProb, weaveProb), defaultMapGenBool)
 }
 
 // BraidMaze creates a set of Tile which form a braid maze (meaning the maze
@@ -55,8 +60,10 @@ func PerfectMaze(n int, runProb, weaveProb float64) *Tile {
 // describing the maze, which is related to but not equal to the number of Tile
 // in the result maze. The runProb specifies how often the algorithm will try
 // to continue extending a corridor, as opposed to starting a new branch.
-func BraidMaze(n int, runProb, weaveProb float64) *Tile {
-	return applyMaze(abstractBraid(n, runProb, weaveProb, 1), DefaultBoolTileFactory)
+// BraidMaze uses a default MapGenBool which generates white '.' for passable
+// Tile and white '#' for wall Tile.
+func BraidMaze(n int, runProb, weaveProb float64) []*Tile {
+	return applyMaze(abstractBraid(n, runProb, weaveProb, 1), defaultMapGenBool)
 }
 
 // HalfBraidMaze creates a set of Tile which form a half-braid maze (meaning the
@@ -65,9 +72,10 @@ func BraidMaze(n int, runProb, weaveProb float64) *Tile {
 // equal to the number of Tile in the result maze. The runProb specifies how
 // often the algorithm will try to continue extending a corridor, as opposed to
 // starting a new branch. The loopProb is the probability of removing a
-// deadend by creating a loop.
-func HalfBraidMaze(n int, runProb, weaveProb, loopProb float64) *Tile {
-	return applyMaze(abstractBraid(n, runProb, weaveProb, loopProb), DefaultBoolTileFactory)
+// deadend by creating a loop. HalfBraidMaze uses a default MapGenBool which
+// generates white '.' for passable Tile and white '#' for wall Tile.
+func HalfBraidMaze(n int, runProb, weaveProb, loopProb float64) []*Tile {
+	return applyMaze(abstractBraid(n, runProb, weaveProb, loopProb), defaultMapGenBool)
 }
 
 // mazenode is a single node (in the graph sense) in an abstractmaze
@@ -269,16 +277,31 @@ func remove(l []*mazenode, n *mazenode) []*mazenode {
 
 // applyMaze converts each node and edge an abstract maze to a single Tile.
 // The origin Tile of the maze is returned.
-func applyMaze(m *abstractmaze, f BoolTileFactory) *Tile {
+func applyMaze(m *abstractmaze, f MapGenBool) []*Tile {
 	origin := createPassTiles(m, f)
 	connectDiagonals(origin)
 	addWalls(origin, f)
-	return origin
+
+	maze := make([]*Tile, 0)
+	frontier := []*Tile{origin}
+	visited := map[*Tile]struct{}{origin: {}}
+	for len(frontier) != 0 {
+		curr := frontier[len(frontier)-1]
+		frontier = frontier[:len(frontier)-1]
+		for _, adj := range curr.Adjacent {
+			if _, seen := visited[adj]; !seen {
+				frontier = append(frontier, adj)
+				visited[adj] = struct{}{}
+				maze = append(maze, adj)
+			}
+		}
+	}
+	return maze
 }
 
 // createPassTiles returns a set of passable Tiles (given by the origin Tile)
 // corresponding to the nodes and edges of an abstractmaze.
-func createPassTiles(m *abstractmaze, f BoolTileFactory) *Tile {
+func createPassTiles(m *abstractmaze, f MapGenBool) *Tile {
 	origin := m.GetArbitraryNode()
 
 	// graph traversal bookkeeping
@@ -332,6 +355,7 @@ func isDiag(o Offset) bool {
 // connectDiagonals takes an orthogonally connected maze, and connects each Tile
 // diagonally through its neighbors.
 func connectDiagonals(origin *Tile) {
+	// FIXME only connect diagonals on the same z-level
 	// setup breadth-first graph traversal bookkeeping
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}
@@ -364,7 +388,7 @@ func connectDiagonals(origin *Tile) {
 
 // addWalls connects each passable tile to a wall where needed. Walls are *not*
 // connected, and their adjacency should never be used as a result.
-func addWalls(origin *Tile, f BoolTileFactory) {
+func addWalls(origin *Tile, f MapGenBool) {
 	// setup breadth-first graph traversal bookkeeping
 	frontier := []*Tile{origin}
 	visited := map[*Tile]struct{}{origin: {}}

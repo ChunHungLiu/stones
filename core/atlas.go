@@ -5,9 +5,10 @@ import (
 	"sort"
 )
 
-type FloatTileFactory func(o Offset, height float64) *Tile
+// MapGenFloat generates Tiles from float64 values to form overworld maps.
+type MapGenFloat func(o Offset, height float64) *Tile
 
-func (f FloatTileFactory) Apply(h *Heightmap) [][]*Tile {
+func (f MapGenFloat) Overworld(h *Heightmap) []*Tile {
 	return h.Apply(f)
 }
 
@@ -147,10 +148,12 @@ func (h *Heightmap) Normalize() {
 	}
 }
 
-func (h *Heightmap) Apply(f FloatTileFactory) [][]*Tile {
+func (h *Heightmap) Apply(f MapGenFloat) []*Tile {
+	backing := make([]*Tile, h.cols*h.rows)
+
 	tiles := make([][]*Tile, h.cols)
 	for x := 0; x < h.cols; x++ {
-		tiles[x] = make([]*Tile, h.rows)
+		tiles[x] = backing[x*h.rows : (x+1)*h.rows]
 		for y := 0; y < h.rows; y++ {
 			tiles[x][y] = f(Offset{x, y}, h.buf[x][y])
 		}
@@ -176,7 +179,7 @@ func (h *Heightmap) Apply(f FloatTileFactory) [][]*Tile {
 		}
 	}
 
-	return tiles
+	return backing
 }
 
 // Transform applies a transformation function to each value of the Heightmap.

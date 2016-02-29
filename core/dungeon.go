@@ -12,7 +12,7 @@ func (r room) inside(o Offset) bool {
 	return r.Offset.X <= o.X && o.X < r.Offset.X+r.Size.X && r.Offset.Y <= o.Y && o.Y < r.Offset.Y+r.Size.Y
 }
 
-func Dungeon(numRooms, minRoomSize, maxRoomSize int, f BoolTileFactory) map[*Tile]struct{} {
+func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenBool) map[*Tile]struct{} {
 	// TODO Added in better maze gen customization
 	maze := abstractBraid(numRooms, .25, 0, 1)
 	rooms := make(map[*mazenode]room)

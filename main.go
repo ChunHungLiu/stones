@@ -10,7 +10,7 @@ func genMaze() *core.Tile {
 	runProb := .5
 	weaveProb := .5
 	loopProb := .5
-	gen := core.BoolTileFactory(func(o core.Offset, pass bool) *core.Tile {
+	gen := core.MapGenBool(func(o core.Offset, pass bool) *core.Tile {
 		t := core.NewTile(o)
 		t.Pass = pass
 		t.Lite = pass
@@ -21,11 +21,13 @@ func genMaze() *core.Tile {
 		}
 		return t
 	})
-	return gen.HalfBraidMaze(numNodes, runProb, weaveProb, loopProb)
+
+	maze := gen.HalfBraidMaze(numNodes, runProb, weaveProb, loopProb)
+	return core.RandPassTile(maze)
 }
 
 func genOverworld() *core.Tile {
-	gen := core.FloatTileFactory(func(o core.Offset, height float64) *core.Tile {
+	gen := core.MapGenFloat(func(o core.Offset, height float64) *core.Tile {
 		t := core.NewTile(o)
 		switch {
 		case height < .5:
@@ -36,25 +38,29 @@ func genOverworld() *core.Tile {
 		}
 		return t
 	})
+
 	h := core.NewHeightmap(40, 40)
 	h.Generate()
-	tiles := gen.Apply(h)
-	for x := 0; x < h.Cols(); x++ {
-		tiles[x][0].Pass = false
-		tiles[x][h.Rows()-1].Pass = false
+	tiles := gen.Overworld(h)
+
+	for _, tile := range tiles {
+		if len(tile.Adjacent) < 8 {
+			tile.Pass = false
+			tile.Lite = false
+			tile.Face = core.Glyph{'#', core.ColorWhite}
+		}
 	}
-	for y := 0; y < h.Rows(); y++ {
-		tiles[0][y].Pass = false
-		tiles[h.Cols()-1][y].Pass = false
-	}
-	return tiles[20][20]
+
+	return core.RandPassTile(tiles)
 }
 
 func main() {
 	core.MustTermInit()
 	defer core.TermDone()
 
-	origin := genOverworld()
+	origin := genMaze()
+	// TODO make origin random passable
+	// TODO connect overworld with maze
 
 	hero := habilis.Skin{
 		Name: "you",
