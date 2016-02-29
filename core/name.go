@@ -33,7 +33,7 @@ func (c *counter) Observe(b byte, count float64) {
 // Sample generates a byte event from the normalized categorical distribution
 // represented by the current counts.
 func (c *counter) Sample() byte {
-	sample := RandFloat() * c.Total
+	sample := RandFloat64() * c.Total
 	for b, count := range c.Counts {
 		if sample <= count {
 			return b
