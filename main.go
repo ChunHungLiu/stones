@@ -5,45 +5,44 @@ import (
 	"github.com/rauko1753/stones/habilis"
 )
 
-func genMaze() *core.Tile {
-	numNodes := 50
-	runProb := .5
-	weaveProb := .5
-	loopProb := .5
-	gen := core.MapGenBool(func(o core.Offset, pass bool) *core.Tile {
-		t := core.NewTile(o)
-		t.Pass = pass
-		t.Lite = pass
-		if pass {
-			t.Face = core.Glyph{'.', core.ColorLightRed}
-		} else {
-			t.Face = core.Glyph{'#', core.ColorRed}
-		}
-		return t
-	})
+var boolgen = core.MapGenBool(func(o core.Offset, pass bool) *core.Tile {
+	t := core.NewTile(o)
+	t.Pass = pass
+	t.Lite = pass
+	if pass {
+		t.Face = core.Glyph{'.', core.ColorLightRed}
+	} else {
+		t.Face = core.Glyph{'#', core.ColorRed}
+	}
+	return t
+})
 
-	maze := gen.HalfBraidMaze(numNodes, runProb, weaveProb, loopProb)
-	return core.RandPassTile(maze)
+var floatgen = core.MapGenFloat(func(o core.Offset, height float64) *core.Tile {
+	t := core.NewTile(o)
+	switch {
+	case height < .5:
+		t.Face = core.Glyph{'~', core.ColorBlue}
+		t.Pass = false
+	default:
+		t.Face = core.Glyph{'.', core.ColorGreen}
+	}
+	return t
+})
+
+func genMaze() []*core.Tile {
+	numNodes := 10
+	runProb := .5
+	weaveProb := 0.
+	loopProb := .5
+	return boolgen.HalfBraidMaze(numNodes, runProb, weaveProb, loopProb)
 }
 
 func genOverworld() *core.Tile {
-	gen := core.MapGenFloat(func(o core.Offset, height float64) *core.Tile {
-		t := core.NewTile(o)
-		switch {
-		case height < .5:
-			t.Face = core.Glyph{'~', core.ColorBlue}
-			t.Pass = false
-		default:
-			t.Face = core.Glyph{'.', core.ColorGreen}
-		}
-		return t
-	})
-
 	h := core.NewHeightmap(40, 40)
 	h.Generate()
-	tiles := gen.Overworld(h)
+	overworld := floatgen.Overworld(h)
 
-	for _, tile := range tiles {
+	for _, tile := range overworld {
 		if len(tile.Adjacent) < 8 {
 			tile.Pass = false
 			tile.Lite = false
@@ -51,16 +50,14 @@ func genOverworld() *core.Tile {
 		}
 	}
 
-	return core.RandPassTile(tiles)
+	return core.RandPassTile(maze)
 }
 
 func main() {
 	core.MustTermInit()
 	defer core.TermDone()
 
-	origin := genMaze()
-	// TODO make origin random passable
-	// TODO connect overworld with maze
+	origin := genOverworld()
 
 	hero := habilis.Skin{
 		Name: "you",
