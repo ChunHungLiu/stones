@@ -12,6 +12,62 @@ func (f MapGenFloat) Overworld(h *Heightmap) []*Tile {
 	return h.Apply(f)
 }
 
+type Biome struct {
+	Boundary    float64
+	PassTiles   []Glyph
+	ImpassTiles []Glyph
+	PassChance  float64
+	ImpassLite  bool
+}
+
+func (b Biome) Generate(o Offset) *Tile {
+	t := NewTile(o)
+	if RandChance(b.PassChance) {
+		t.Face = b.PassTiles[RandIntn(len(b.PassTiles))]
+	} else {
+		t.Face = b.ImpassTiles[RandIntn(len(b.ImpassTiles))]
+		t.Pass = false
+		t.Lite = b.ImpassLite
+	}
+	return t
+}
+
+type BiomeList []Biome
+
+func (l BiomeList) Len() int {
+	return len(l)
+}
+
+func (l BiomeList) Less(i, j int) bool {
+	return l[i].Boundary < l[j].Boundary
+}
+
+func (l BiomeList) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+func (l BiomeList) NewMapGen() MapGenFloat {
+	lcopy := make(BiomeList, len(l))
+	copy(lcopy, l)
+	sort.Sort(sort.Reverse(lcopy))
+
+	return func(o Offset, height float64) *Tile {
+		maxbiome := lcopy[0]
+		for _, biome := range lcopy {
+			if height < biome.Boundary {
+				maxbiome = biome
+			}
+		}
+		return maxbiome.Generate(o)
+	}
+}
+
+// TODO Add function to connect overworld with maze
+// allow caller to specify entrance/exit criteria
+// translate maze coordinates to match overworld coordinates
+// fully connect maze entrance with overworld
+// fully connect overworld connection neighbors with maze
+
 // Heightmap is a grid of float64, with methods for manipulating the heightmap.
 type Heightmap struct {
 	cols, rows int

@@ -17,17 +17,36 @@ var boolgen = core.MapGenBool(func(o core.Offset, pass bool) *core.Tile {
 	return t
 })
 
-var floatgen = core.MapGenFloat(func(o core.Offset, height float64) *core.Tile {
-	t := core.NewTile(o)
-	switch {
-	case height < .5:
-		t.Face = core.Glyph{'~', core.ColorBlue}
-		t.Pass = false
-	default:
-		t.Face = core.Glyph{'.', core.ColorGreen}
-	}
-	return t
-})
+var biomes = core.BiomeList{
+	core.Biome{
+		Boundary:   .3,
+		PassChance: 0,
+		ImpassTiles: []core.Glyph{
+			core.Glyph{'~', core.ColorBlue},
+			core.Glyph{'~', core.ColorLightBlue},
+		},
+		ImpassLite: true,
+	},
+	core.Biome{
+		Boundary:   .4,
+		PassChance: 0,
+		ImpassTiles: []core.Glyph{
+			core.Glyph{'~', core.ColorCyan},
+			core.Glyph{'~', core.ColorLightCyan},
+		},
+		ImpassLite: true,
+	},
+	core.Biome{
+		Boundary:   1,
+		PassChance: .95,
+		PassTiles: []core.Glyph{
+			core.Glyph{'.', core.ColorGreen},
+		},
+		ImpassTiles: []core.Glyph{
+			core.Glyph{'%', core.ColorGreen},
+		},
+	},
+}
 
 func genMaze() []*core.Tile {
 	numNodes := 10
@@ -38,9 +57,9 @@ func genMaze() []*core.Tile {
 }
 
 func genOverworld() *core.Tile {
-	h := core.NewHeightmap(40, 40)
+	h := core.NewHeightmap(200, 400)
 	h.Generate()
-	overworld := floatgen.Overworld(h)
+	overworld := biomes.NewMapGen().Overworld(h)
 
 	for _, tile := range overworld {
 		if len(tile.Adjacent) < 8 {
@@ -50,7 +69,7 @@ func genOverworld() *core.Tile {
 		}
 	}
 
-	return core.RandPassTile(maze)
+	return core.RandPassTile(overworld)
 }
 
 func main() {
