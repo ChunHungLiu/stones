@@ -1,45 +1,92 @@
 package core
 
+// MapGenInt generates Tiles for int values to form dungeon maps.
+type MapGenInt func(o Offset, tiletype int) *Tile
+
+const (
+	TileTypeRoom = 1 << iota
+	TileTypeWall
+	TileTypeDoor
+	TileTypeCorridor
+)
+
 type room struct {
-	Offset, Size Offset
+	X, Y, W, H int
 }
 
-func (r room) rand() Offset {
-	return Offset{r.Offset.X + RandRange(1, r.Size.X-2), r.Offset.Y + RandRange(1, r.Size.Y-2)}
+func (r room) ConnectX(o room, f MapGenInt) []*Tile {
+	tiles := make([]*Tile, 0)
+
+	minY := Max(r.Y, o.Y) + 1
+	maxY := Min(r.Y+r.H, o.Y+o.H) - 2
+	var srcY, dstY int
+	if minY < maxY && RandBool() {
+		srcY = RandRange(minY, maxY)
+		dstY = srcY
+	} else {
+		srcY = RandRange(r.Y+1, r.Y+r.H-2)
+		dstY = RandRange(o.Y+1, o.Y+o.H-2)
+	}
+	srcX, dstX := r.X+r.W/2, o.X+o.W/2
+
+	midX := (srcX + dstX) / 2
+	if r.InBounds(midX, srcY) || o.InBounds(midX, dstY) {
+		midX = (r.X + r.W + o.X) / 2
+	}
+	if r.InBounds(midX, srcY) || o.InBounds(midX, dstY) {
+		midX = (r.X + o.X + o.W) / 2
+	}
+
+	for srcX != midX {
+		srcX += Signum(midX - srcX)
+		if !r.InBounds(srcX, srcY) && !o.InBounds(srcX, srcY) {
+			tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeCorridor))
+		}
+	}
+	for srcY != dstY {
+		srcY += Signum(dstY - srcY)
+		if !r.InBounds(srcX, srcY) && !o.InBounds(srcX, srcY) {
+			tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeCorridor))
+		}
+	}
+	for srcX != dstX {
+		srcX += Signum(dstX - srcX)
+		if !r.InBounds(srcX, srcY) && !o.InBounds(srcX, srcY) {
+			tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeCorridor))
+		}
+	}
+
+	return tiles
 }
 
-func (r room) inside(o Offset) bool {
-	return r.Offset.X <= o.X && o.X < r.Offset.X+r.Size.X && r.Offset.Y <= o.Y && o.Y < r.Offset.Y+r.Size.Y
+func (r room) InBounds(x, y int) bool {
+	return InBounds(x-r.X, y-r.Y, r.W, r.H)
 }
 
 // Dungeon stub - will eventually generate room and corridor maps.
-func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenBool) map[*Tile]struct{} {
+func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenInt) []*Tile {
 	// TODO Added in better maze gen customization
 	maze := abstractBraid(numRooms, .25, 0, 1)
 	rooms := make(map[*mazenode]room)
-	tiles := make(map[*Tile]struct{})
+	tiles := make([]*Tile, 0)
 	gridSize := maxRoomSize + minRoomSize
 
 	// create rooms
 	for _, nodes := range maze.Nodes {
 		for _, node := range nodes {
-			size := Offset{
-				RandRange(minRoomSize, maxRoomSize),
-				RandRange(minRoomSize, maxRoomSize),
-			}
-			offset := Offset{
-				RandRange(gridSize*node.Pos.X, gridSize*(node.Pos.X+2)-size.X-1),
-				RandRange(gridSize*node.Pos.Y, gridSize*(node.Pos.Y+1)-size.Y-1),
-			}
-			rooms[node] = room{offset, size}
+			w := RandRange(minRoomSize, maxRoomSize)
+			h := RandRange(minRoomSize, maxRoomSize)
+			x := RandRange(gridSize*node.Pos.X, gridSize*(node.Pos.X+1)-w-1)
+			y := RandRange(gridSize*node.Pos.Y, gridSize*(node.Pos.Y+1)-h-1)
+			rooms[node] = room{x, y, w, h}
 		}
 	}
 
 	// create room tiles
 	for _, room := range rooms {
-		for x := room.Offset.X; x < room.Offset.X+room.Size.X; x++ {
-			for y := room.Offset.Y; y < room.Offset.Y+room.Size.Y; y++ {
-				tiles[f(Offset{x, y}, true)] = struct{}{}
+		for x := room.X; x < room.X+room.W; x++ {
+			for y := room.Y; y < room.Y+room.H; y++ {
+				tiles = append(tiles, f(Offset{x, y}, TileTypeRoom))
 				// TODO connect room tiles
 			}
 		}
@@ -47,6 +94,9 @@ func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenBool) map[*Tile]str
 
 	// create corridors
 	origin := maze.GetArbitraryNode()
+	if origin == nil {
+		panic("WTF")
+	}
 	frontier := []*mazenode{origin}
 	enqued := map[*mazenode]struct{}{origin: {}}
 	closed := map[*mazenode]struct{}{}
@@ -59,7 +109,7 @@ func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenBool) map[*Tile]str
 		}
 		closed[curr] = struct{}{}
 
-		for _, adj := range curr.Edges {
+		for step, adj := range curr.Edges {
 			if _, done := closed[adj]; done {
 				continue
 			}
@@ -67,37 +117,12 @@ func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenBool) map[*Tile]str
 				frontier = append(frontier, adj)
 			}
 
-			srcroom, srcok := rooms[curr]
-			if !srcok {
-				panic(curr)
-			}
-			dstroom, dstok := rooms[adj]
-			if !dstok {
-				panic(curr)
+			if step.X != 0 {
+				tiles = append(tiles, rooms[curr].ConnectX(rooms[adj], f)...)
+			} else {
+				//tiles = append(tiles, rooms[curr].ConnectY(rooms[adj], f)...)
 			}
 
-			src, dst := srcroom.rand(), dstroom.rand()
-
-			for src.X != dst.X {
-				if !rooms[curr].inside(src) && !rooms[adj].inside(src) {
-					tiles[f(src, true)] = struct{}{}
-				}
-				if src.X < dst.X {
-					src.X++
-				} else {
-					src.X--
-				}
-			}
-			for src.Y != dst.Y {
-				if !rooms[curr].inside(src) && !rooms[adj].inside(src) {
-					tiles[f(src, true)] = struct{}{}
-				}
-				if src.Y < dst.Y {
-					src.Y++
-				} else {
-					src.Y--
-				}
-			}
 			// TODO connect corridor tiles
 		}
 	}

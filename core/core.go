@@ -158,6 +158,11 @@ func Round(x float64, ndigits int) float64 {
 	return math.Copysign(math.Floor(math.Abs(x)*shift+.5)/shift, x)
 }
 
+// Signum extracts the sign of an int.
+func Signum(x int) int {
+	return Clamp(-1, x, 1)
+}
+
 // Error represents custom errors arising from the stones core. The main use
 // case is allowing callers to distinguish between built-in errors and error
 // values originating from stones.

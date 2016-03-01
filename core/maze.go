@@ -1,6 +1,6 @@
 package core
 
-// MapGenBool generates Tiles from bool values to form mazes, dungeons or caves.
+// MapGenBool generates Tiles from bool values to form various mazes.
 type MapGenBool func(o Offset, pass bool) *Tile
 
 // PerfectMaze creates a set of Tile which form a perfect maze (meaning the
@@ -258,6 +258,7 @@ func removeDeadends(m *abstractmaze, loopProb float64) {
 					deadends = append(deadends, adj)
 				}
 			}
+			// FIXME add a replacement node for each deleted node
 		} else {
 			// pick a neighboring node, and connect an edge to the neighbor
 			neighbor := candidates[RandIntn(len(candidates))]
