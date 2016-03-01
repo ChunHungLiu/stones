@@ -60,8 +60,8 @@ func PearsonGoodness(obs, exp []int, alpha float64) (accept bool) {
 	return pValue <= alpha
 }
 
-// TestPearsonsChiSquaredTest is a test of the other dice tests!
-func TestPearsonsChiSquaredTest(t *testing.T) {
+// TestPearsonsGoodness is a test of the other dice tests!
+func TestPearsonsGoodness(t *testing.T) {
 	cases := []struct {
 		Obs, Exp []int
 		X2       float64
