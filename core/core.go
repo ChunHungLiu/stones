@@ -150,6 +150,10 @@ func InBounds(x, y, w, h int) bool {
 	return 0 <= x && x < w && 0 <= y && y < h
 }
 
+func InRange(x, min, max int) bool {
+	return min <= x && x < max
+}
+
 // Round returns x rounded ndigits digits after the decimal point.
 // Values are rounded to the closest multiple of 10 to the power of -ndigits.
 // If two multiples are equally close, rounding is down away from 0.

@@ -208,37 +208,9 @@ func (h *Heightmap) Normalize() {
 
 // Apply genereates a new map from a MapGenFloat.
 func (h *Heightmap) Apply(f MapGenFloat) []*Tile {
-	backing := make([]*Tile, h.cols*h.rows)
-
-	tiles := make([][]*Tile, h.cols)
-	for x := 0; x < h.cols; x++ {
-		tiles[x] = backing[x*h.rows : (x+1)*h.rows]
-		for y := 0; y < h.rows; y++ {
-			tiles[x][y] = f(Offset{x, y}, h.buf[x][y])
-		}
-	}
-
-	link := func(x, y, dx, dy int) {
-		nx, ny := x+dx, y+dy
-		if 0 <= nx && nx < h.cols && 0 <= ny && ny < h.rows {
-			tiles[x][y].Adjacent[Offset{dx, dy}] = tiles[nx][ny]
-		}
-	}
-
-	for x := 0; x < h.cols; x++ {
-		for y := 0; y < h.rows; y++ {
-			link(x, y, 1, 1)
-			link(x, y, 1, 0)
-			link(x, y, 1, -1)
-			link(x, y, 0, 1)
-			link(x, y, 0, -1)
-			link(x, y, -1, 1)
-			link(x, y, -1, 0)
-			link(x, y, -1, -1)
-		}
-	}
-
-	return backing
+	return createTileGrid(h.cols, h.rows, Offset{}, func(o Offset) *Tile {
+		return f(o, h.buf[o.X][o.Y])
+	})
 }
 
 // Transform applies a transformation function to each value of the Heightmap.

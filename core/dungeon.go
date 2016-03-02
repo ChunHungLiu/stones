@@ -5,16 +5,17 @@ type MapGenInt func(o Offset, tiletype int) *Tile
 
 const (
 	TileTypeRoom = 1 << iota
+	TileTypeCorridor
 	TileTypeWall
 	TileTypeDoor
-	TileTypeCorridor
 )
 
 type room struct {
 	X, Y, W, H int
+	Tiles      []*Tile
 }
 
-func (r room) ConnectX(o room, f MapGenInt) []*Tile {
+func (r *room) ConnectX(o *room, f MapGenInt) []*Tile {
 	tiles := make([]*Tile, 0)
 
 	minY := Max(r.Y, o.Y) + 1
@@ -30,28 +31,37 @@ func (r room) ConnectX(o room, f MapGenInt) []*Tile {
 	srcX, dstX := r.X+r.W/2, o.X+o.W/2
 
 	midX := (srcX + dstX) / 2
-	if r.InBounds(midX, srcY) || o.InBounds(midX, dstY) {
+	if InRange(midX, r.X, r.X+r.W) || InRange(midX, o.X, o.X+o.W) {
 		midX = (r.X + r.W + o.X) / 2
 	}
-	if r.InBounds(midX, srcY) || o.InBounds(midX, dstY) {
+	if InRange(midX, r.X, r.X+r.W) || InRange(midX, o.X, o.X+o.W) {
 		midX = (r.X + o.X + o.W) / 2
 	}
 
 	for srcX != midX {
-		srcX += Signum(midX - srcX)
-		if !r.InBounds(srcX, srcY) && !o.InBounds(srcX, srcY) {
+		nextX := srcX + Signum(midX-srcX)
+		if InRange(srcX, r.X, r.X+r.W) {
+			if !InRange(nextX, r.X, r.X+r.W) {
+				tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeDoor))
+			}
+		} else {
 			tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeCorridor))
 		}
+		srcX = nextX
 	}
+	tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeCorridor))
+
 	for srcY != dstY {
 		srcY += Signum(dstY - srcY)
-		if !r.InBounds(srcX, srcY) && !o.InBounds(srcX, srcY) {
-			tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeCorridor))
-		}
+		tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeCorridor))
 	}
+
 	for srcX != dstX {
 		srcX += Signum(dstX - srcX)
-		if !r.InBounds(srcX, srcY) && !o.InBounds(srcX, srcY) {
+		if InRange(srcX, o.X, o.X+o.W) {
+			tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeDoor))
+			break
+		} else {
 			tiles = append(tiles, f(Offset{srcX, srcY}, TileTypeCorridor))
 		}
 	}
@@ -59,15 +69,37 @@ func (r room) ConnectX(o room, f MapGenInt) []*Tile {
 	return tiles
 }
 
-func (r room) InBounds(x, y int) bool {
-	return InBounds(x-r.X, y-r.Y, r.W, r.H)
+func (r *room) Transpose() *room {
+	return &room{r.Y, r.X, r.H, r.W, nil}
+}
+
+func (r *room) ConnectY(o *room, f MapGenInt) []*Tile {
+	fTranspose := MapGenInt(func(o Offset, tiletype int) *Tile {
+		return f(Offset{o.Y, o.X}, tiletype)
+	})
+	return r.Transpose().ConnectX(o.Transpose(), fTranspose)
+}
+
+func (r *room) CreateTiles(f MapGenInt) []*Tile {
+	r.Tiles = createTileGrid(r.W-2, r.H-2, Offset{r.X + 1, r.Y + 1}, func(o Offset) *Tile {
+		return f(o, TileTypeRoom)
+	})
+	return r.Tiles
+}
+
+func (r *room) ConnectDoor(door *Tile) {
+	for _, tile := range r.Tiles {
+		if step := door.Offset.Sub(tile.Offset); step.Chebyshev() == 1 {
+			tile.Adjacent[step] = door
+			door.Adjacent[step.Neg()] = tile
+		}
+	}
 }
 
 // Dungeon stub - will eventually generate room and corridor maps.
 func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenInt) []*Tile {
-	// TODO Added in better maze gen customization
 	maze := abstractBraid(numRooms, .25, 0, 1)
-	rooms := make(map[*mazenode]room)
+	rooms := make(map[*mazenode]*room)
 	tiles := make([]*Tile, 0)
 	gridSize := maxRoomSize + minRoomSize
 
@@ -78,25 +110,17 @@ func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenInt) []*Tile {
 			h := RandRange(minRoomSize, maxRoomSize)
 			x := RandRange(gridSize*node.Pos.X, gridSize*(node.Pos.X+1)-w-1)
 			y := RandRange(gridSize*node.Pos.Y, gridSize*(node.Pos.Y+1)-h-1)
-			rooms[node] = room{x, y, w, h}
+			rooms[node] = &room{x, y, w, h, nil}
 		}
 	}
 
 	// create room tiles
 	for _, room := range rooms {
-		for x := room.X; x < room.X+room.W; x++ {
-			for y := room.Y; y < room.Y+room.H; y++ {
-				tiles = append(tiles, f(Offset{x, y}, TileTypeRoom))
-				// TODO connect room tiles
-			}
-		}
+		tiles = append(tiles, room.CreateTiles(f)...)
 	}
 
 	// create corridors
 	origin := maze.GetArbitraryNode()
-	if origin == nil {
-		panic("WTF")
-	}
 	frontier := []*mazenode{origin}
 	enqued := map[*mazenode]struct{}{origin: {}}
 	closed := map[*mazenode]struct{}{}
@@ -117,13 +141,24 @@ func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenInt) []*Tile {
 				frontier = append(frontier, adj)
 			}
 
+			var corridor []*Tile
+			currRoom, adjRoom := rooms[curr], rooms[adj]
 			if step.X != 0 {
-				tiles = append(tiles, rooms[curr].ConnectX(rooms[adj], f)...)
+				corridor = currRoom.ConnectX(adjRoom, f)
 			} else {
-				//tiles = append(tiles, rooms[curr].ConnectY(rooms[adj], f)...)
+				corridor = currRoom.ConnectY(adjRoom, f)
 			}
 
-			// TODO connect corridor tiles
+			currRoom.ConnectDoor(corridor[0])
+			adjRoom.ConnectDoor(corridor[len(corridor)-1])
+			for i := 0; i < len(corridor)-1; i++ {
+				j := i + 1
+				step := corridor[j].Offset.Sub(corridor[i].Offset)
+				corridor[i].Adjacent[step] = corridor[j]
+				corridor[j].Adjacent[step.Neg()] = corridor[i]
+			}
+
+			tiles = append(tiles, corridor...)
 		}
 	}
 
