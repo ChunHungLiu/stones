@@ -72,11 +72,33 @@ func genOverworld() *core.Tile {
 	return core.RandPassTile(overworld)
 }
 
+func genDungeon() *core.Tile {
+	var gen = core.MapGenInt(func(o core.Offset, tiletype int) *core.Tile {
+		tile := core.NewTile(o)
+		switch tiletype {
+		case core.TileTypeRoom:
+			tile.Face = core.Glyph{'.', core.ColorLightWhite}
+		case core.TileTypeCorridor:
+			tile.Face = core.Glyph{'.', core.ColorLightBlack}
+		case core.TileTypeDoor:
+			tile.Face = core.Glyph{'+', core.ColorWhite}
+			tile.Lite = false
+		case core.TileTypeWall:
+			tile.Face = core.Glyph{'#', core.ColorWhite}
+			tile.Pass = false
+			tile.Lite = false
+		}
+		return tile
+	})
+	tiles := core.Dungeon(50, 6, 10, gen)
+	return core.RandPassTile(tiles)
+}
+
 func main() {
 	core.MustTermInit()
 	defer core.TermDone()
 
-	origin := genOverworld()
+	origin := genDungeon()
 
 	hero := habilis.Skin{
 		Name: "you",
