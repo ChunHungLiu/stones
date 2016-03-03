@@ -178,11 +178,11 @@ func TestRandChance_bounds(t *testing.T) {
 		RandSeed(seed)
 		for i := 0; i < 100; i++ {
 			if RandChance(0) {
-				t.Log("RandChance(0) returned true (seed=%#X)", seed)
+				t.Logf("RandChance(0) returned true (seed=%#X)", seed)
 				t.FailNow()
 			}
 			if !RandChance(1) {
-				t.Log("RandChance(1) returned false (seed=%#X", seed)
+				t.Logf("RandChance(1) returned false (seed=%#X", seed)
 				t.FailNow()
 			}
 		}
