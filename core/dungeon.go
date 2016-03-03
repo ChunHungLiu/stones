@@ -162,7 +162,11 @@ func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenInt) []*Tile {
 		}
 	}
 
-	// TODO reuse maze connection stuff to fully connect dungeon and walls
+	connectDiagonals(tiles[0])
+	walls := addWalls(tiles[0], func(o Offset) *Tile {
+		return f(o, TileTypeWall)
+	})
+	tiles = append(tiles, walls...)
 
 	return tiles
 }

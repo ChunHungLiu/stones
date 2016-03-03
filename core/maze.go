@@ -284,7 +284,9 @@ func remove(l []*mazenode, n *mazenode) []*mazenode {
 func applyMaze(m *abstractmaze, f MapGenBool) []*Tile {
 	origin := createPassTiles(m, f)
 	connectDiagonals(origin)
-	addWalls(origin, f)
+	addWalls(origin, func(o Offset) *Tile {
+		return f(o, false)
+	})
 
 	var maze []*Tile
 	frontier := []*Tile{origin}
@@ -349,82 +351,6 @@ func createPassTiles(m *abstractmaze, f MapGenBool) *Tile {
 	}
 
 	return visited[m.GetArbitraryNode()]
-}
-
-// isDiag returns true if the Offset is a single diagonal step.
-func isDiag(o Offset) bool {
-	return Abs(o.X) == 1 && Abs(o.Y) == 1
-}
-
-// connectDiagonals takes an orthogonally connected maze, and connects each Tile
-// diagonally through its neighbors.
-func connectDiagonals(origin *Tile) {
-	// FIXME only connect diagonals on the same z-level
-	// setup breadth-first graph traversal bookkeeping
-	frontier := []*Tile{origin}
-	visited := map[*Tile]struct{}{origin: {}}
-
-	for len(frontier) != 0 {
-		// pop the queue in breadth first fashion
-		curr := frontier[0]
-		frontier = frontier[1:]
-
-		for _, step1 := range orthogonal {
-			// take two orthogonal steps to for a single diagonal step from curr
-			// if there is something there, connect curr and the resulting Tile
-			if adj, ok := curr.Adjacent[step1]; ok {
-				for step2, tile := range adj.Adjacent {
-					if diag := step1.Add(step2); isDiag(diag) {
-						curr.Adjacent[diag] = tile
-						tile.Adjacent[diag.Neg()] = curr
-					}
-				}
-
-				// enqueue any unvisted Tile
-				if _, seen := visited[adj]; !seen {
-					frontier = append(frontier, adj)
-					visited[adj] = struct{}{}
-				}
-			}
-		}
-	}
-}
-
-// addWalls connects each passable tile to a wall where needed. Walls are *not*
-// connected, and their adjacency should never be used as a result.
-func addWalls(origin *Tile, f MapGenBool) {
-	// setup breadth-first graph traversal bookkeeping
-	frontier := []*Tile{origin}
-	visited := map[*Tile]struct{}{origin: {}}
-
-	for len(frontier) != 0 {
-		// pop queue in breadth first fashion
-		curr := frontier[0]
-		frontier = frontier[1:]
-
-		// for each step, ensure we have an edge.
-		for _, step := range cardinal {
-			if adj, ok := curr.Adjacent[step]; ok {
-				// if the edge already exists, just add it if passable.
-				if _, seen := visited[adj]; !seen && adj.Pass {
-					frontier = append(frontier, adj)
-					visited[adj] = struct{}{}
-				}
-			} else {
-				// try and find a pre-made wall through my neighbors
-				off := curr.Offset.Add(step)
-				wall, ok := findWall(curr, off)
-				if !ok {
-					wall = f(off, false)
-				}
-				// connect to the wall - note that this connection means that
-				// nearby nodes will reuse this one when they are popped off
-				// the queue in breadth first fashion.
-				curr.Adjacent[step] = wall
-				wall.Adjacent[step.Neg()] = curr
-			}
-		}
-	}
 }
 
 // findWall queries the neighbors of origin for a Tile at the given dest.
