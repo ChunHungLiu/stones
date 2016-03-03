@@ -3,6 +3,8 @@ package core
 // MapGenInt generates Tiles for int values to form dungeon maps.
 type MapGenInt func(o Offset, tiletype int) *Tile
 
+// Constants used by Dungeon as tile type values passed to MapGenInt. It is
+// likely that any user defined MapGenInt will switch on these constants.
 const (
 	TileTypeRoom = 1 << iota
 	TileTypeCorridor
@@ -16,7 +18,7 @@ type room struct {
 }
 
 func (r *room) ConnectX(o *room, f MapGenInt) []*Tile {
-	tiles := make([]*Tile, 0)
+	var tiles []*Tile
 
 	minY := Max(r.Y, o.Y) + 1
 	maxY := Min(r.Y+r.H, o.Y+o.H) - 2
@@ -98,9 +100,10 @@ func (r *room) ConnectDoor(door *Tile) {
 
 // Dungeon stub - will eventually generate room and corridor maps.
 func Dungeon(numRooms, minRoomSize, maxRoomSize int, f MapGenInt) []*Tile {
+	var tiles []*Tile
+
 	maze := abstractBraid(numRooms, .25, 0, 1)
 	rooms := make(map[*mazenode]*room)
-	tiles := make([]*Tile, 0)
 	gridSize := maxRoomSize + minRoomSize
 
 	// create rooms

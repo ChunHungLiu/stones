@@ -68,7 +68,7 @@ func (d Dice) Tile(tiles []*Tile, condition func(*Tile) bool) *Tile {
 		}
 	}
 
-	candidates := make([]*Tile, 0)
+	var candidates []*Tile
 	for _, tile := range tiles {
 		if condition(tile) {
 			candidates = append(candidates, tile)

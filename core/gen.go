@@ -1,5 +1,8 @@
 package core
 
+// MapGen generates Tile for various map generators. The typical use case is
+// to wrap other MapGen<type> so that those generators can be used more
+// generically.
 type MapGen func(o Offset) *Tile
 
 func createTileGrid(cols, rows int, o Offset, f MapGen) []*Tile {

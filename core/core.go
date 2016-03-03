@@ -150,6 +150,7 @@ func InBounds(x, y, w, h int) bool {
 	return 0 <= x && x < w && 0 <= y && y < h
 }
 
+// InRange returns true if x is in [min, max).
 func InRange(x, min, max int) bool {
 	return min <= x && x < max
 }

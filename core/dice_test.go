@@ -91,7 +91,7 @@ func TestPearsonsGoodness(t *testing.T) {
 	}
 }
 
-// We will be using Pearson's to do a sanity check on our dice funtions. We
+// We will be using Pearson's to do a sanity check on our dice functions. We
 // could of course run a more complete statistical test of randomness (such as
 // Diehard or similar), but really we just want to make sure that we aren't
 // causing some pathological errors. Consequently, we'll be content to just
