@@ -83,7 +83,7 @@ func (r *room) ConnectY(o *room, f MapGenInt) []*Tile {
 }
 
 func (r *room) CreateTiles(f MapGenInt) []*Tile {
-	r.Tiles = createTileGrid(r.W-2, r.H-2, Offset{r.X + 1, r.Y + 1}, func(o Offset) *Tile {
+	r.Tiles = NewTileGrid(r.W-2, r.H-2, Offset{r.X + 1, r.Y + 1}, func(o Offset) *Tile {
 		return f(o, TileTypeRoom)
 	})
 	return r.Tiles

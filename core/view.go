@@ -248,3 +248,5 @@ func computeReverseTable(radius int) map[Offset]Offset {
 	}
 	return reverse
 }
+
+// TODO Add circular version of FoV

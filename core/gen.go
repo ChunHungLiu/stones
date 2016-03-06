@@ -5,14 +5,15 @@ package core
 // generically.
 type MapGen func(o Offset) *Tile
 
-func createTileGrid(cols, rows int, o Offset, f MapGen) []*Tile {
+// NewTileGrid creates a 2D grid of Tile using the given MapGen.
+func NewTileGrid(cols, rows int, origin Offset, f MapGen) []*Tile {
 	backing := make([]*Tile, cols*rows)
 
 	tiles := make([][]*Tile, cols)
 	for x := 0; x < cols; x++ {
 		tiles[x] = backing[x*rows : (x+1)*rows]
 		for y := 0; y < rows; y++ {
-			tiles[x][y] = f(o.Add(Offset{x, y}))
+			tiles[x][y] = f(origin.Add(Offset{x, y}))
 		}
 	}
 

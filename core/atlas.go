@@ -208,7 +208,7 @@ func (h *Heightmap) Normalize() {
 
 // Apply genereates a new map from a MapGenFloat.
 func (h *Heightmap) Apply(f MapGenFloat) []*Tile {
-	return createTileGrid(h.cols, h.rows, Offset{}, func(o Offset) *Tile {
+	return NewTileGrid(h.cols, h.rows, Offset{}, func(o Offset) *Tile {
 		return f(o, h.buf[o.X][o.Y])
 	})
 }

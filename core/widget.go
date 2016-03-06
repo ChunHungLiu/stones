@@ -203,3 +203,5 @@ func (b *PercentBarWidget) Update() {
 		}
 	}
 }
+
+// TODO Add non-centering version of CameraWidget
